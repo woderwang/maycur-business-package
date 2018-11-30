@@ -1,4 +1,3 @@
 import MkTable from './MkTable';
-export default {
-  MkTable
-};
+import Avatar from './Avatar';
+export { MkTable, Avatar };
