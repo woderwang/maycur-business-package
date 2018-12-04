@@ -5,6 +5,7 @@ import _Layout from "maycur-antd/lib/layout";
 import React from 'react';
 import _ from 'lodash';
 const Sider = _Layout.Sider;
+const SubMenu = _Menu.SubMenu;
 
 const MkSider = props => {
   const menus = props.menus,
