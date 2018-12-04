@@ -36,7 +36,8 @@ class MkLayout extends Component {
           renderMenu = _this$props.renderMenu,
           renderSiderMenu = _this$props.renderSiderMenu,
           renderContent = _this$props.renderContent,
-          logoUrl = _this$props.logoUrl;
+          logoUrl = _this$props.logoUrl,
+          noSider = _this$props.noSider;
     const menus = setMenus();
     const siderMenus = setSiderMenus();
     return React.createElement(_Layout, {
@@ -51,7 +52,7 @@ class MkLayout extends Component {
       logoUrl: logoUrl
     }), React.createElement(_Layout, {
       className: "section"
-    }, React.createElement(MkSider, {
+    }, noSider ? null : React.createElement(MkSider, {
       collapsed: collapsed,
       pathname: pathname,
       menus: siderMenus,
