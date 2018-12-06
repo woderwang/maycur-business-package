@@ -4,6 +4,7 @@ import React, { Component } from 'react';
 import MkHeader from './MkHeader';
 import MkSider from './MkSider';
 import PropTypes from 'prop-types';
+const prefix = 'mkbs';
 
 class MkLayout extends Component {
   constructor(props) {
@@ -40,7 +41,7 @@ class MkLayout extends Component {
     const menus = setMenus();
     const siderMenus = setSiderMenus();
     return React.createElement(_Layout, {
-      className: "page-container"
+      className: `${prefix}-page-container`
     }, React.createElement(MkHeader, {
       collapsed: collapsed,
       onToggleCollapsed: this.onToggleCollapsed,

@@ -14,6 +14,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 import React from 'react';
 import _ from 'lodash';
 import classNames from 'classnames';
+const prefix = 'mkbs';
 const Header = _Layout.Header;
 
 const MkHeader = props => {
@@ -47,11 +48,11 @@ const MkHeader = props => {
     }
   };
 
-  const logoAreaClassName = classNames('mk-logo', {
-    'mk-logo-collapsed': collapsed
+  const logoAreaClassName = classNames(`${prefix}-header-logo`, {
+    [`${prefix}-header-logo-collapsed`]: collapsed
   });
   return React.createElement(Header, {
-    className: "mk-header"
+    className: `${prefix}-header`
   }, React.createElement("div", {
     className: logoAreaClassName
   }, React.createElement("div", {
@@ -64,7 +65,7 @@ const MkHeader = props => {
     className: "trigger",
     type: collapsed ? 'menu-unfold' : 'menu-fold'
   })), React.createElement("div", {
-    className: "mk-menus"
+    className: `${prefix}-header-menus`
   }, React.createElement("div", {
     className: "left-menu"
   }, React.createElement(_Menu, {
