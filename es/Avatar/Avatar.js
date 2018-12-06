@@ -115,7 +115,8 @@ class Avatar extends Component {
     return React.createElement(React.Fragment, null, avatarUrl ? React.createElement("img", {
       className: `${prefix}-avatar-img`,
       src: avatarUrl,
-      alt: "\u5934\u50CF"
+      alt: "\u5934\u50CF",
+      style: _objectSpread({}, customStyle)
     }) : React.createElement("span", {
       onClick: this.onClickAvatar,
       className: `${prefix}-avatar ${this.state.color}`,
