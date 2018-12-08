@@ -1,25 +1,25 @@
 {
   "name": "maycur-business",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "maycur businuess react components of web",
-  "main": "lib/index.js",  
+  "main": "lib/index.js",
   "module": "es/index.js",
-  "scripts": {    
+  "scripts": {
     "start": "npx styleguidist server",
     "compile": "node tools/build.js",
-    "build": "babel components -d lib --copy-files --delete-dir-on-start && rm -rf es && cp -R lib es"       
+    "build": "babel components -d lib --copy-files --delete-dir-on-start && rm -rf es && cp -R lib es"
   },
   "keywords": [
     "maycur",
     "business",
     "react"
   ],
-  "files": [    
+  "files": [
     "lib",
     "es"
   ],
   "author": "woder",
-  "license": "MIT", 
+  "license": "MIT",
   "peerDependencies": {
     "react": "^16.6.0",
     "react-dom": "^16.6.3",
