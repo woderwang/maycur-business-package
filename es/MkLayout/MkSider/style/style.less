@@ -12,9 +12,11 @@
     .ant-menu-item,
     .ant-menu-submenu-title {
       width: 100%;
+      height: @sider-menu-height;
+      line-height: @sider-menu-height;
 
       >a {
-        font-size: 16px;
+        display: flex;
         color: #757575;
 
         .fm {
@@ -42,7 +44,7 @@
   }
 
   .ant-menu-inline-collapsed {
-    width: 56px;
+    width: @menu-collapsed-width;
 
     >.ant-menu-submenu {
       &.ant-menu-submenu-selected {
@@ -55,7 +57,7 @@
       }
 
       >.ant-menu-submenu-title {
-        padding: 0 18px !important;
+        padding: 0 16px !important;
         border-left: 3px solid transparent;
 
         .fm+span {
@@ -67,7 +69,7 @@
     }
     
     .ant-menu-item {
-      padding: 0 18px !important;
+      padding: 0 16px !important;
       border-left: 3px solid transparent;
 
       &.ant-menu-item-selected {

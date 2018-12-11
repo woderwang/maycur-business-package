@@ -24,6 +24,7 @@ const MkSider = props => {
 
   return React.createElement(Sider, {
     breakpoint: "xl",
+    theme: "light",
     className: `${prefix}-sider`,
     width: 240,
     trigger: null,
@@ -34,7 +35,7 @@ const MkSider = props => {
   }, React.createElement(_Menu, {
     theme: "light",
     mode: "inline",
-    inlineIndent: "40",
+    inlineIndent: "44",
     selectedKeys: selectedKeys,
     style: {
       height: '100%',
