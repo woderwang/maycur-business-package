@@ -30,13 +30,12 @@ class MkLayout extends Component {
   render() {
     const collapsed = this.state.collapsed;
     const _this$props = this.props,
-          pathname = _this$props.location.pathname,
+          pathArr = _this$props.pathArr,
           setMenus = _this$props.setMenus,
           setSiderMenus = _this$props.setSiderMenus,
           renderMenu = _this$props.renderMenu,
           renderSiderMenu = _this$props.renderSiderMenu,
           renderContent = _this$props.renderContent,
-          logoUrl = _this$props.logoUrl,
           noSider = _this$props.noSider;
     const menus = setMenus();
     const siderMenus = setSiderMenus();
@@ -45,17 +44,16 @@ class MkLayout extends Component {
     }, React.createElement(MkHeader, {
       collapsed: collapsed,
       onToggleCollapsed: this.onToggleCollapsed,
-      pathname: pathname,
+      pathArr: pathArr,
       leftMenus: menus.leftMenus,
       rightMenus: menus.rightMenus,
-      renderMenu: renderMenu,
-      logoUrl: logoUrl
+      renderMenu: renderMenu
     }), React.createElement(_Layout, {
       className: "section"
     }, noSider ? null : React.createElement(MkSider, {
       collapsed: collapsed,
       onToggleCollapsed: this.onToggleCollapsed,
-      pathname: pathname,
+      pathArr: pathArr,
       menus: siderMenus,
       renderMenu: renderSiderMenu
     }), React.createElement(_Layout, {

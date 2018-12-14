@@ -1,9 +1,8 @@
+import "core-js/modules/web.dom.iterable";
 import "maycur-antd/lib/menu/style/css";
 import _Menu from "maycur-antd/lib/menu";
 import "maycur-antd/lib/icon/style/css";
 import _Icon from "maycur-antd/lib/icon";
-import "core-js/modules/es6.regexp.constructor";
-import "core-js/modules/web.dom.iterable";
 import "maycur-antd/lib/layout/style/css";
 import _Layout from "maycur-antd/lib/layout";
 
@@ -19,21 +18,12 @@ const Header = _Layout.Header;
 
 const MkHeader = props => {
   const collapsed = props.collapsed,
-        pathname = props.pathname,
+        pathArr = props.pathArr,
         onToggleCollapsed = props.onToggleCollapsed,
         leftMenus = props.leftMenus,
-        rightMenus = props.rightMenus,
-        logoUrl = props.logoUrl;
-  let selectedKeys = [];
+        rightMenus = props.rightMenus;
   const menus = leftMenus.concat(rightMenus);
-
-  _.forEach(menus, item => {
-    let routeReg = new RegExp(`^${item.path}`);
-
-    if (routeReg.test(pathname)) {
-      selectedKeys.push(item.path);
-    }
-  });
+  const selectedKeys = pathArr.length > 1 ? [`/${pathArr[1]}`] : [menus[0].path];
 
   const formatMenus = menu => {
     const menuName = menu.meta && menu.meta.name || '';
@@ -58,7 +48,7 @@ const MkHeader = props => {
   }, React.createElement("div", {
     className: "logo-content"
   }, React.createElement("span", null, React.createElement("img", {
-    src: logoUrl,
+    src: "https://dt-prod.oss-cn-hangzhou.aliyuncs.com/MK/maycur-logo.png?Expires=4699823897&OSSAccessKeyId=LTAIW3TdsFRisDtO&Signature=Zt%2FTp0ueRbZeUQN9xOQjZjI5iNI%3D",
     alt: "\u6BCF\u523B\u62A5"
   }))), React.createElement(_Icon, {
     onClick: toggleCollapsed,
@@ -73,7 +63,7 @@ const MkHeader = props => {
     mode: "horizontal",
     defaultSelectedKeys: [menus[0].path],
     selectedKeys: selectedKeys
-  }, leftMenus.map(menu => {
+  }, leftMenus.map((menu, index) => {
     const formattedMenus = formatMenus(menu);
     const content = props.renderMenu(formattedMenus);
 
@@ -91,7 +81,7 @@ const MkHeader = props => {
     mode: "horizontal",
     defaultSelectedKeys: [menus[0].path],
     selectedKeys: selectedKeys
-  }, rightMenus.map(menu => {
+  }, rightMenus.map((menu, index) => {
     const formattedMenus = formatMenus(menu);
     return React.createElement(_Menu.Item, {
       key: menu.path
