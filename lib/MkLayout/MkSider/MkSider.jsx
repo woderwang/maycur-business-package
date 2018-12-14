@@ -48,6 +48,11 @@ const MkSider = props => {
     }
 
     menu.menuName = menu.meta.name;
+    const content = props.renderMenu(menu);
+
+    if (!content) {
+      return null;
+    }
 
     if (menu.routes) {
       return React.createElement(SubMenu, {
@@ -62,7 +67,7 @@ const MkSider = props => {
     } else {
       return React.createElement(_Menu.Item, {
         key: menu.path
-      }, props.renderMenu(menu));
+      }, content);
     }
   })));
 };

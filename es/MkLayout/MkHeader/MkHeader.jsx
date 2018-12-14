@@ -75,9 +75,15 @@ const MkHeader = props => {
     selectedKeys: selectedKeys
   }, leftMenus.map(menu => {
     const formattedMenus = formatMenus(menu);
+    const content = props.renderMenu(formattedMenus);
+
+    if (!content) {
+      return null;
+    }
+
     return React.createElement(_Menu.Item, {
       key: menu.path
-    }, props.renderMenu(formattedMenus));
+    }, content);
   }))), rightMenus && rightMenus.length ? React.createElement("div", {
     className: "right-menu"
   }, React.createElement(_Menu, {
