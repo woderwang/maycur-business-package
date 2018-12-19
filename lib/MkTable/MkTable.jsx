@@ -21,7 +21,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
  * @desc: maycur-antd 业务包装
  * @Date: 2018-11-27 15:18:53 
  * @Last Modified by: woder.wang
- * @Last Modified time: 2018-12-18 21:32:26
+ * @Last Modified time: 2018-12-19 15:28:59
  */
 
 /* resizeable注意事项，在table中，需要至少有一列是非resizeable的，这一列是用来给调整宽度的时候，留给其他列的空间变动的，没有这样的列，交互会异常 */
@@ -267,11 +267,10 @@ let MkTable = option => WrapperComponent => {
         const rowKey = params.rowKey,
               rowSelectionOption = params.rowSelection;
 
-        const _ref6 = rowSelection || {},
-              onSelectionChange = _ref6.onSelectionChange,
-              restRowSelection = _objectWithoutProperties(_ref6, ["onSelectionChange"]);
+        const _ref6 = rowSelectionOption || {},
+              onSelectionChange = _ref6.onSelectionChange;
 
-        this.rowKey = rowKey; // let parentNodeHeight;
+        this.rowKey = rowKey;
 
         let rowSelection = _objectSpread({}, rowSelectionOption, {
           onChange: (selectedRowKeys, selectedRows) => {
@@ -282,17 +281,11 @@ let MkTable = option => WrapperComponent => {
             onSelectionChange && onSelectionChange(selectedRowKeys);
           },
           selectedRowKeys: selectedRowKeys
-        }, restRowSelection);
+        });
 
         let visibleColumns = _.filter(columns, col => {
           return !hideColumnCodeList.includes(col.dataIndex);
-        }); // if (this.tableRef) {
-        //     let parentNode = this.tableRef.parentNode;
-        //     if (parentNode) {
-        //         parentNodeHeight = parentNode.clientHeight;
-        //     }
-        // }            
-
+        });
 
         let tableCls = classnames(`${prefix}-mktable-container fix-header`, {
           'empty': !dataSource || dataSource && dataSource.length === 0
