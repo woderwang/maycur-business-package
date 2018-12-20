@@ -1,4 +1,6 @@
 import "core-js/modules/es6.regexp.split";
+import "core-js/modules/es6.regexp.constructor";
+import "core-js/modules/web.dom.iterable";
 import "maycur-antd/lib/menu/style/css";
 import _Menu from "maycur-antd/lib/menu";
 import "maycur-antd/lib/layout/style/css";
@@ -9,12 +11,31 @@ const prefix = 'mkbs';
 const Sider = _Layout.Sider;
 const SubMenu = _Menu.SubMenu;
 
+function loopPath(menus, pathArr) {
+  let matchedMenu;
+  if (!pathArr) return;
+
+  _.forEach(menus, menu => {
+    let pathReg = new RegExp('^' + menu.path);
+
+    if (menu.routes) {
+      let childMenu = loopPath(menu.routes, pathArr);
+      if (childMenu) matchedMenu = childMenu;
+    } else {
+      if (pathReg.test(pathArr.join('/'))) matchedMenu = menu;
+    }
+  });
+
+  return matchedMenu;
+}
+
 const MkSider = props => {
   const menus = props.menus,
         pathArr = props.pathArr,
         collapsed = props.collapsed,
         onToggleCollapsed = props.onToggleCollapsed;
-  const selectedKeys = pathArr.length > 1 ? [`${pathArr.join('/')}`] : [menus[0].path];
+  let matchedMenu = loopPath(menus, pathArr);
+  let selectedKeys = matchedMenu ? [matchedMenu.path] : [];
   const defaultOpenKeys = pathArr.length > 2 ? [pathArr.slice(0, pathArr.length - 1).join('/')] : [];
   return React.createElement(Sider, {
     breakpoint: "xl",

@@ -21,7 +21,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
  * @desc: maycur-antd 业务包装
  * @Date: 2018-11-27 15:18:53 
  * @Last Modified by: woder.wang
- * @Last Modified time: 2018-12-19 15:28:59
+ * @Last Modified time: 2018-12-20 19:20:10
  */
 
 /* resizeable注意事项，在table中，需要至少有一列是非resizeable的，这一列是用来给调整宽度的时候，留给其他列的空间变动的，没有这样的列，交互会异常 */
@@ -265,6 +265,7 @@ let MkTable = option => WrapperComponent => {
               loadProps = _this$state2.loadProps,
               hideColumnCodeList = _this$state2.hideColumnCodeList;
         const rowKey = params.rowKey,
+              scroll = params.scroll,
               rowSelectionOption = params.rowSelection;
 
         const _ref6 = rowSelectionOption || {},
@@ -287,9 +288,16 @@ let MkTable = option => WrapperComponent => {
           return !hideColumnCodeList.includes(col.dataIndex);
         });
 
-        let tableCls = classnames(`${prefix}-mktable-container fix-header`, {
-          'empty': !dataSource || dataSource && dataSource.length === 0
+        let tableCls = classnames(`${prefix}-mktable-container`, {
+          'empty': !dataSource || dataSource && dataSource.length === 0,
+          'enable-scroll-x': !(scroll && scroll.x),
+          'fix-header': option.isFixHeader
         });
+
+        let tableScroll = _.assign(scroll, option.isFixHeader ? {
+          y: true
+        } : {});
+
         return React.createElement("div", {
           className: tableCls,
           ref: _ref7 => {
@@ -301,9 +309,7 @@ let MkTable = option => WrapperComponent => {
           } : null,
           components: this.components,
           columns: visibleColumns,
-          scroll: {
-            y: true
-          },
+          scroll: tableScroll,
           pagination: option.hidePagination ? false : pagination,
           dataSource: dataSource,
           onChange: this.onChange,

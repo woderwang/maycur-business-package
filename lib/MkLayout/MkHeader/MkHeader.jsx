@@ -3,6 +3,7 @@ import "maycur-antd/lib/menu/style/css";
 import _Menu from "maycur-antd/lib/menu";
 import "maycur-antd/lib/icon/style/css";
 import _Icon from "maycur-antd/lib/icon";
+import "core-js/modules/es6.regexp.constructor";
 import "maycur-antd/lib/layout/style/css";
 import _Layout from "maycur-antd/lib/layout";
 
@@ -23,7 +24,13 @@ const MkHeader = props => {
         leftMenus = props.leftMenus,
         rightMenus = props.rightMenus;
   const menus = leftMenus.concat(rightMenus);
-  const selectedKeys = pathArr.length > 1 ? [`/${pathArr[1]}`] : [menus[0].path];
+
+  let matchedMenu = _.find(menus, menu => {
+    let pathReg = new RegExp('^' + menu.path);
+    return pathReg.test(pathArr.join('/'));
+  });
+
+  let selectedKeys = matchedMenu ? [matchedMenu.path] : [];
 
   const formatMenus = menu => {
     const menuName = menu.meta && menu.meta.name || '';
