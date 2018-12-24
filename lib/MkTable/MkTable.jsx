@@ -34,6 +34,7 @@ import classnames from 'classnames';
 import { DateFilter, FuzzFilter, CheckFilter } from './FilterDropDown';
 import FilterStateBar from './FilterStateBar';
 import PopSelect from './PopSelect/PopSelect';
+import Empty from '../Empty';
 import utils from '../utils/utils';
 let prefix = utils.prefixCls;
 /* title 宽度变动 */
@@ -317,11 +318,7 @@ let MkTable = option => WrapperComponent => {
             spinning: loading
           }),
           locale: {
-            emptyText: () => React.createElement("div", {
-              className: 'data-emtpy'
-            }, React.createElement("span", {
-              className: 'fm fm-prompt'
-            }), React.createElement("span", null, "\u6682\u65E0\u6570\u636E"))
+            emptyText: () => React.createElement(Empty, null)
           }
         })));
       };
@@ -547,6 +544,23 @@ let MkTable = option => WrapperComponent => {
         this.setState({
           hideColumnCodeList
         });
+      };
+
+      this.widthMonitor = () => {
+        /* minColumnWidth表格的最小宽度,用于解决长表格被挤压的情况 */
+        const columns = this.state.columns;
+        let tableMinWidth = 0;
+        let minColumnWidth = 100;
+
+        if (columns.length >= 5) {
+          _.forEach(columns, col => {
+            tableMinWidth += col.width && col.width > 0 ? col.width : minColumnWidth;
+          });
+        }
+
+        return {
+          tableMinWidth
+        };
       };
 
       this.state = {
