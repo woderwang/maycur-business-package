@@ -1,0 +1,59 @@
+/* base variables */
+/* text-color */
+/* pin */
+/* 字体大小 */
+/* tab-bar */
+/* 提示颜色 */
+/* fee type color 引用自主版本 */
+/* mix-in class */
+#mixin-ios-scroll {
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+#mixin-pick-bar {
+  display: flex;
+  background: #fff;
+  font-weight: normal;
+  font-size: 16px;
+}
+#mixin-pick-bar > div {
+  flex: 1;
+  text-align: center;
+  color: #3296FA;
+  line-height: 50px;
+}
+.mkbs-pageheader-bar {
+  display: flex;
+  flex-shrink: 0;
+  height: 50px;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid #eee;
+  background-color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+.mkbs-pageheader-bar_back {
+  margin-right: 8px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #666;
+}
+.mkbs-pageheader-bar_back:hover {
+  cursor: pointer;
+}
+.mkbs-pageheader-bar_title {
+  font-size: 16px;
+  font-weight: bold;
+}
+.mkbs-pageheader-bar_help {
+  color: #3296FA;
+  cursor: pointer;
+  justify-self: flex-end;
+}
+.mkbs-pageheader-bar_close {
+  padding: 8px;
+  cursor: pointer;
+}
