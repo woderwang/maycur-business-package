@@ -21,7 +21,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
  * @desc: maycur-antd 业务包装
  * @Date: 2018-11-27 15:18:53 
  * @Last Modified by: woder.wang
- * @Last Modified time: 2018-11-29 17:55:18
+ * @Last Modified time: 2018-12-20 19:20:10
  */
 
 /* resizeable注意事项，在table中，需要至少有一列是非resizeable的，这一列是用来给调整宽度的时候，留给其他列的空间变动的，没有这样的列，交互会异常 */
@@ -30,11 +30,13 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 import React, { Component } from 'react';
 import { Resizable } from 'react-resizable';
 import _ from 'lodash';
+import classnames from 'classnames';
 import { DateFilter, FuzzFilter, CheckFilter } from './FilterDropDown';
 import FilterStateBar from './FilterStateBar';
-import PopSelect from './PopSelect/PopSelect'; // import styles from './MkTable.less';
-
-let prefix = 'mkbs';
+import PopSelect from './PopSelect/PopSelect';
+import Empty from '../Empty';
+import utils from '../utils/utils';
+let prefix = utils.prefixCls;
 /* title 宽度变动 */
 
 const ResizeableTitle = props => {
@@ -62,6 +64,19 @@ let MkTable = option => WrapperComponent => {
     firstDisplayColumns: []
   };
   option = Object.assign(defaultOption, option);
+  let defaultPageSizeOptions = [10, 20, 30, 40];
+
+  if (option.pageSize) {
+    defaultPageSizeOptions.push(option.pageSize);
+    defaultPageSizeOptions.sort((a, b) => {
+      return a - b;
+    });
+  }
+
+  _.forEach(defaultPageSizeOptions, (val, index) => {
+    defaultPageSizeOptions[index] = val + '';
+  });
+
   return class extends Component {
     constructor(_props) {
       var _this;
@@ -94,7 +109,12 @@ let MkTable = option => WrapperComponent => {
                     selectedKeys = _ref2.selectedKeys,
                     confirm = _ref2.confirm,
                     clearFilters = _ref2.clearFilters;
-                return React.createElement(FuzzFilter, null);
+                return React.createElement(FuzzFilter, _extends({}, col, {
+                  setSelectedKeys: setSelectedKeys,
+                  selectedKeys: selectedKeys,
+                  confirm: confirm,
+                  clearFilters: clearFilters
+                }));
               };
             } else if (col.filterOption.type === 'checkbox') {
               col.filterDropdown = (_ref3) => {
@@ -251,7 +271,12 @@ let MkTable = option => WrapperComponent => {
               loadProps = _this$state2.loadProps,
               hideColumnCodeList = _this$state2.hideColumnCodeList;
         const rowKey = params.rowKey,
+              scroll = params.scroll,
               rowSelectionOption = params.rowSelection;
+
+        const _ref6 = rowSelectionOption || {},
+              onSelectionChange = _ref6.onSelectionChange;
+
         this.rowKey = rowKey;
 
         let rowSelection = _objectSpread({}, rowSelectionOption, {
@@ -259,6 +284,26 @@ let MkTable = option => WrapperComponent => {
             this.setState({
               selectedRows,
               selectedRowKeys
+            });
+            onSelectionChange && onSelectionChange(selectedRowKeys);
+          },
+          onSelect: (record, selected, selectedRows, nativeEvent) => {
+            let allSelectedRows = this.state.allSelectedRows;
+
+            if (selected) {
+              allSelectedRows.push(record);
+            } else {
+              let selectIndex = _.findIndex(allSelectedRows, {
+                [`${this.rowKey}`]: record[this.rowKey]
+              });
+
+              if (selectIndex > -1) {
+                allSelectedRows.splice(selectIndex);
+              }
+            }
+
+            this.setState({
+              allSelectedRows
             });
           },
           selectedRowKeys: selectedRowKeys
@@ -268,17 +313,28 @@ let MkTable = option => WrapperComponent => {
           return !hideColumnCodeList.includes(col.dataIndex);
         });
 
+        let tableCls = classnames(`${prefix}-mktable-container`, {
+          'empty': !dataSource || dataSource && dataSource.length === 0,
+          'enable-scroll-x': !(scroll && scroll.x),
+          'fix-header': option.isFixHeader
+        });
+
+        let tableScroll = _.assign(scroll, option.isFixHeader ? {
+          y: true
+        } : {});
+
         return React.createElement("div", {
-          className: `${prefix}-mktable-container`
+          className: tableCls,
+          ref: _ref7 => {
+            this.tableRef = _ref7;
+          }
         }, React.createElement(_Table, _extends({}, params, {
           rowSelection: selectAble ? rowSelection : selectAbleLock ? {
             selectedRowKeys
           } : null,
           components: this.components,
           columns: visibleColumns,
-          scroll: option.isFixHeader ? {
-            y: 500
-          } : undefined,
+          scroll: tableScroll,
           pagination: option.hidePagination ? false : pagination,
           dataSource: dataSource,
           onChange: this.onChange,
@@ -286,11 +342,7 @@ let MkTable = option => WrapperComponent => {
             spinning: loading
           }),
           locale: {
-            emptyText: () => React.createElement("div", {
-              className: 'data-emtpy'
-            }, React.createElement("span", {
-              className: 'fm fm-prompt'
-            }), React.createElement("span", null, "\u6682\u65E0\u6570\u636E"))
+            emptyText: () => React.createElement(Empty, null)
           }
         })));
       };
@@ -385,9 +437,9 @@ let MkTable = option => WrapperComponent => {
 
             if (resp.code === 'success') {
               dataSource = resp.data;
-              this.setState((_ref6) => {
-                let pagination = _ref6.pagination,
-                    selectedRows = _ref6.selectedRows;
+              this.setState((_ref8) => {
+                let pagination = _ref8.pagination,
+                    selectedRows = _ref8.selectedRows;
                 let rebuildSelectedRows = [],
                     rebuildSelectedRowKeys = [];
 
@@ -411,6 +463,7 @@ let MkTable = option => WrapperComponent => {
                   selectedRows: rebuildSelectedRows,
                   selectedRowKeys: rebuildSelectedRowKeys,
                   pagination: _objectSpread({}, pagination, {
+                    showQuickJumper: pagination.pageSize < resp.total,
                     total: resp.total
                   })
                 };
@@ -517,6 +570,23 @@ let MkTable = option => WrapperComponent => {
         });
       };
 
+      this.widthMonitor = () => {
+        /* minColumnWidth表格的最小宽度,用于解决长表格被挤压的情况 */
+        const columns = this.state.columns;
+        let tableMinWidth = 0;
+        let minColumnWidth = 100;
+
+        if (columns.length >= 5) {
+          _.forEach(columns, col => {
+            tableMinWidth += col.width && col.width > 0 ? col.width : minColumnWidth;
+          });
+        }
+
+        return {
+          tableMinWidth
+        };
+      };
+
       this.state = {
         columns: [],
         filters: {},
@@ -533,11 +603,15 @@ let MkTable = option => WrapperComponent => {
         },
         pagination: {
           pageSize: option && option.pageSize ? option.pageSize : 10,
+          defaultPageSize: option && option.pageSize ? option.pageSize : 10,
           showTotal: total => {
             return React.createElement("span", null, "\u603B\u6570", total, "\u6761");
           },
+          pageSizeOptions: defaultPageSizeOptions,
+          showSizeChanger: true,
           total: 0
         },
+        allSelectedRows: [],
         selectedRows: [],
         selectedRowKeys: [],
         selectAble: false,
@@ -551,6 +625,7 @@ let MkTable = option => WrapperComponent => {
         }
       };
       this.fetchDataSourceFn = null;
+      this.tableRef = null;
     }
     /* column转化，用于自定义的filter dropdown效果 */
 

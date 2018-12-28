@@ -1,9 +1,9 @@
-import "maycur-antd/lib/menu/style/css";
-import _Menu from "maycur-antd/lib/menu";
+import "core-js/modules/web.dom.iterable";
 import "maycur-antd/lib/icon/style/css";
 import _Icon from "maycur-antd/lib/icon";
 import "core-js/modules/es6.regexp.constructor";
-import "core-js/modules/web.dom.iterable";
+import "maycur-antd/lib/menu/style/css";
+import _Menu from "maycur-antd/lib/menu";
 import "maycur-antd/lib/layout/style/css";
 import _Layout from "maycur-antd/lib/layout";
 
@@ -16,24 +16,22 @@ import _ from 'lodash';
 import classNames from 'classnames';
 const prefix = 'mkbs';
 const Header = _Layout.Header;
+const SubMenu = _Menu.SubMenu;
 
 const MkHeader = props => {
   const collapsed = props.collapsed,
-        pathname = props.pathname,
+        pathArr = props.pathArr,
         onToggleCollapsed = props.onToggleCollapsed,
         leftMenus = props.leftMenus,
-        rightMenus = props.rightMenus,
-        logoUrl = props.logoUrl;
-  let selectedKeys = [];
+        rightMenus = props.rightMenus;
   const menus = leftMenus.concat(rightMenus);
 
-  _.forEach(menus, item => {
-    let routeReg = new RegExp(`^${item.path}`);
-
-    if (routeReg.test(pathname)) {
-      selectedKeys.push(item.path);
-    }
+  let matchedMenu = _.find(menus, menu => {
+    let pathReg = new RegExp('^' + menu.path);
+    return pathReg.test(pathArr.join('/'));
   });
+
+  let selectedKeys = matchedMenu ? [matchedMenu.path] : [];
 
   const formatMenus = menu => {
     const menuName = menu.meta && menu.meta.name || '';
@@ -51,6 +49,10 @@ const MkHeader = props => {
   const logoAreaClassName = classNames(`${prefix}-header-logo`, {
     [`${prefix}-header-logo-collapsed`]: collapsed
   });
+
+  const onOpenChange = openKeys => {// debugger
+  };
+
   return React.createElement(Header, {
     className: `${prefix}-header`
   }, React.createElement("div", {
@@ -58,7 +60,7 @@ const MkHeader = props => {
   }, React.createElement("div", {
     className: "logo-content"
   }, React.createElement("span", null, React.createElement("img", {
-    src: logoUrl,
+    src: "https://dt-prod.oss-cn-hangzhou.aliyuncs.com/MK/maycur-logo.png?Expires=4699823897&OSSAccessKeyId=LTAIW3TdsFRisDtO&Signature=Zt%2FTp0ueRbZeUQN9xOQjZjI5iNI%3D",
     alt: "\u6BCF\u523B\u62A5"
   }))), React.createElement(_Icon, {
     onClick: toggleCollapsed,
@@ -75,21 +77,39 @@ const MkHeader = props => {
     selectedKeys: selectedKeys
   }, leftMenus.map(menu => {
     const formattedMenus = formatMenus(menu);
+    const content = props.renderMenu(formattedMenus);
+
+    if (!content) {
+      return null;
+    }
+
     return React.createElement(_Menu.Item, {
       key: menu.path
-    }, props.renderMenu(formattedMenus));
+    }, content);
   }))), rightMenus && rightMenus.length ? React.createElement("div", {
     className: "right-menu"
   }, React.createElement(_Menu, {
     theme: "dark",
     mode: "horizontal",
     defaultSelectedKeys: [menus[0].path],
-    selectedKeys: selectedKeys
+    selectedKeys: selectedKeys,
+    onOpenChange: onOpenChange
   }, rightMenus.map(menu => {
     const formattedMenus = formatMenus(menu);
-    return React.createElement(_Menu.Item, {
+    const MenuContent = menu.hasSub ? React.createElement(SubMenu, {
+      key: menu.path,
+      title: React.createElement("span", {
+        className: `fm ${menu.icon}`
+      })
+    }, menu.routes.map(route => {
+      route.menuName = route.meta.name;
+      return React.createElement(_Menu.Item, {
+        key: route.path
+      }, props.renderMenu(route));
+    })) : React.createElement(_Menu.Item, {
       key: menu.path
     }, props.renderMenu(formattedMenus));
+    return MenuContent;
   }))) : null));
 };
 
