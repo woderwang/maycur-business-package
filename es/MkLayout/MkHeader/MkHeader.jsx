@@ -1,9 +1,9 @@
 import "core-js/modules/web.dom.iterable";
-import "maycur-antd/lib/menu/style/css";
-import _Menu from "maycur-antd/lib/menu";
 import "maycur-antd/lib/icon/style/css";
 import _Icon from "maycur-antd/lib/icon";
 import "core-js/modules/es6.regexp.constructor";
+import "maycur-antd/lib/menu/style/css";
+import _Menu from "maycur-antd/lib/menu";
 import "maycur-antd/lib/layout/style/css";
 import _Layout from "maycur-antd/lib/layout";
 
@@ -16,6 +16,7 @@ import _ from 'lodash';
 import classNames from 'classnames';
 const prefix = 'mkbs';
 const Header = _Layout.Header;
+const SubMenu = _Menu.SubMenu;
 
 const MkHeader = props => {
   const collapsed = props.collapsed,
@@ -48,6 +49,10 @@ const MkHeader = props => {
   const logoAreaClassName = classNames(`${prefix}-header-logo`, {
     [`${prefix}-header-logo-collapsed`]: collapsed
   });
+
+  const onOpenChange = openKeys => {// debugger
+  };
+
   return React.createElement(Header, {
     className: `${prefix}-header`
   }, React.createElement("div", {
@@ -70,7 +75,7 @@ const MkHeader = props => {
     mode: "horizontal",
     defaultSelectedKeys: [menus[0].path],
     selectedKeys: selectedKeys
-  }, leftMenus.map((menu, index) => {
+  }, leftMenus.map(menu => {
     const formattedMenus = formatMenus(menu);
     const content = props.renderMenu(formattedMenus);
 
@@ -87,12 +92,24 @@ const MkHeader = props => {
     theme: "dark",
     mode: "horizontal",
     defaultSelectedKeys: [menus[0].path],
-    selectedKeys: selectedKeys
-  }, rightMenus.map((menu, index) => {
+    selectedKeys: selectedKeys,
+    onOpenChange: onOpenChange
+  }, rightMenus.map(menu => {
     const formattedMenus = formatMenus(menu);
-    return React.createElement(_Menu.Item, {
+    const MenuContent = menu.hasSub ? React.createElement(SubMenu, {
+      key: menu.path,
+      title: React.createElement("span", {
+        className: `fm ${menu.icon}`
+      })
+    }, menu.routes.map(route => {
+      route.menuName = route.meta.name;
+      return React.createElement(_Menu.Item, {
+        key: route.path
+      }, props.renderMenu(route));
+    })) : React.createElement(_Menu.Item, {
       key: menu.path
     }, props.renderMenu(formattedMenus));
+    return MenuContent;
   }))) : null));
 };
 

@@ -109,7 +109,12 @@ let MkTable = option => WrapperComponent => {
                     selectedKeys = _ref2.selectedKeys,
                     confirm = _ref2.confirm,
                     clearFilters = _ref2.clearFilters;
-                return React.createElement(FuzzFilter, null);
+                return React.createElement(FuzzFilter, _extends({}, col, {
+                  setSelectedKeys: setSelectedKeys,
+                  selectedKeys: selectedKeys,
+                  confirm: confirm,
+                  clearFilters: clearFilters
+                }));
               };
             } else if (col.filterOption.type === 'checkbox') {
               col.filterDropdown = (_ref3) => {
@@ -281,6 +286,25 @@ let MkTable = option => WrapperComponent => {
               selectedRowKeys
             });
             onSelectionChange && onSelectionChange(selectedRowKeys);
+          },
+          onSelect: (record, selected, selectedRows, nativeEvent) => {
+            let allSelectedRows = this.state.allSelectedRows;
+
+            if (selected) {
+              allSelectedRows.push(record);
+            } else {
+              let selectIndex = _.findIndex(allSelectedRows, {
+                [`${this.rowKey}`]: record[this.rowKey]
+              });
+
+              if (selectIndex > -1) {
+                allSelectedRows.splice(selectIndex);
+              }
+            }
+
+            this.setState({
+              allSelectedRows
+            });
           },
           selectedRowKeys: selectedRowKeys
         });
@@ -587,6 +611,7 @@ let MkTable = option => WrapperComponent => {
           showSizeChanger: true,
           total: 0
         },
+        allSelectedRows: [],
         selectedRows: [],
         selectedRowKeys: [],
         selectAble: false,

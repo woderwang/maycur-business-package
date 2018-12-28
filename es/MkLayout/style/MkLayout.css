@@ -70,10 +70,19 @@
   width: 50px;
   text-align: center;
 }
+.mkbs-header .right-menu .ant-menu .ant-menu-submenu:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.mkbs-header .right-menu .ant-menu .ant-menu-submenu .ant-menu-submenu-title {
+  font-size: 18px;
+}
 .mkbs-header .ant-menu {
   flex-grow: 1;
   background-color: transparent;
   line-height: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
 }
 .mkbs-header .ant-menu .ant-menu-item {
   padding: 0 26px;
@@ -94,6 +103,21 @@
   display: flex;
 }
 .mkbs-header .ant-menu .ant-menu-item-group-list .ant-menu-item {
+  padding: 0 16px;
+}
+.ant-menu-submenu-popup.ant-menu-dark .ant-menu-sub {
+  background-color: #fff;
+}
+.ant-menu-submenu-popup.ant-menu-dark .ant-menu-sub .ant-menu-item {
+  padding: 0;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.65);
+}
+.ant-menu-submenu-popup.ant-menu-dark .ant-menu-sub .ant-menu-item:hover {
+  color: #3296FA;
+}
+.ant-menu-submenu-popup.ant-menu-dark .ant-menu-sub .ant-menu-item > span {
+  display: block;
   padding: 0 16px;
 }
 .mkbs-sider {

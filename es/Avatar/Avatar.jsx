@@ -121,7 +121,7 @@ class Avatar extends Component {
       onClick: this.onClickAvatar,
       className: `${prefix}-avatar ${this.state.color || 'c0'}`,
       style: _objectSpread({}, customStyle)
-    }, React.createElement("span", null, this.state.abbrName || '无')));
+    }, React.createElement("span", null, this.state.abbrName || '头像')));
   }
 
 }

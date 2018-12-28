@@ -69,6 +69,10 @@ class FilterStateBar extends Component {
               filterName = this.limitLen(filterPlainText.join(','));
               break;
 
+            case 'search':
+              filterName = filterPlainText.length > 0 ? filterPlainText[0] : filterValue;
+              break;
+
             default:
               filterName = filterValue;
               break;
