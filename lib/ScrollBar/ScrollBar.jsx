@@ -9,7 +9,7 @@ class ScrollBar extends Component {
   }
 
   render() {
-    return React.createElement(PerfectScrollbar, null, this.props.children);
+    return React.createElement(PerfectScrollbar, this.props, this.props.children);
   }
 
 }

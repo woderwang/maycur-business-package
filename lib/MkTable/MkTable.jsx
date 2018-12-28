@@ -21,7 +21,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
  * @desc: maycur-antd 业务包装
  * @Date: 2018-11-27 15:18:53 
  * @Last Modified by: woder.wang
- * @Last Modified time: 2018-12-20 19:20:10
+ * @Last Modified time: 2018-12-28 18:08:52
  */
 
 /* resizeable注意事项，在table中，需要至少有一列是非resizeable的，这一列是用来给调整宽度的时候，留给其他列的空间变动的，没有这样的列，交互会异常 */
@@ -164,6 +164,8 @@ let MkTable = option => WrapperComponent => {
 
       this.onChange = (pagination, filters, sorter) => {
         let columns = this.state.columns;
+        const currentFilters = this.state.filters;
+        let isFilterChange = !_.isEqual(currentFilters, filters);
 
         _.forEach(filters, (value, key) => {
           if (value) {
@@ -200,7 +202,9 @@ let MkTable = option => WrapperComponent => {
           },
           pagination
         }, () => {
-          this.dataFetch();
+          this.dataFetch({
+            isFilterChange
+          });
         });
       };
 
@@ -275,38 +279,32 @@ let MkTable = option => WrapperComponent => {
               rowSelectionOption = params.rowSelection;
 
         const _ref6 = rowSelectionOption || {},
-              onSelectionChange = _ref6.onSelectionChange;
+              onSelectionChange = _ref6.onSelectionChange,
+              inSelectedRowKeys = _ref6.selectedRowKeys;
 
         this.rowKey = rowKey;
 
         let rowSelection = _objectSpread({}, rowSelectionOption, {
           onChange: (selectedRowKeys, selectedRows) => {
-            this.setState({
-              selectedRows,
-              selectedRowKeys
+            /* 注意：onChange中的selectedRows，因为antd不支持跨页选取，所以selectedRows只包含当前页选中的数据 */
+            let unSelectedRows = _.differenceWith(dataSource, selectedRows, _.isEqual);
+
+            let unSelectedRowKeys = _.map(unSelectedRows, row => {
+              return row[rowKey];
             });
-            onSelectionChange && onSelectionChange(selectedRowKeys);
-          },
-          onSelect: (record, selected, selectedRows, nativeEvent) => {
-            let allSelectedRows = this.state.allSelectedRows;
 
-            if (selected) {
-              allSelectedRows.push(record);
-            } else {
-              let selectIndex = _.findIndex(allSelectedRows, {
-                [`${this.rowKey}`]: record[this.rowKey]
-              });
-
-              if (selectIndex > -1) {
-                allSelectedRows.splice(selectIndex);
-              }
-            }
-
-            this.setState({
-              allSelectedRows
+            if (selectedRows.length > 0) this.modifySelectRows({
+              type: 'update',
+              rows: selectedRows,
+              rowKeys: selectedRowKeys
+            });
+            if (unSelectedRows.length > 0) this.modifySelectRows({
+              type: 'delete',
+              rows: unSelectedRows,
+              rowKeys: unSelectedRowKeys
             });
           },
-          selectedRowKeys: selectedRowKeys
+          selectedRowKeys: _.union(selectedRowKeys, inSelectedRowKeys)
         });
 
         let visibleColumns = _.filter(columns, col => {
@@ -318,8 +316,9 @@ let MkTable = option => WrapperComponent => {
           'enable-scroll-x': !(scroll && scroll.x),
           'fix-header': option.isFixHeader
         });
+        /* 当前不支持列冻结的功能 */
 
-        let tableScroll = _.assign(scroll, option.isFixHeader ? {
+        let tableScroll = _.assign({}, option.isFixHeader ? {
           y: true
         } : {});
 
@@ -415,53 +414,42 @@ let MkTable = option => WrapperComponent => {
         return React.createElement("span", null, "\u603B\u657019\u6761");
       };
 
-      this.dataFetch = () => {
-        if (typeof this.fetchDataSourceFn !== 'function') return;
-        let _this$state4 = this.state,
+      this.dataFetch = function () {
+        let params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        const isFilterChange = params.isFilterChange;
+        if (typeof _this.fetchDataSourceFn !== 'function') return;
+        let _this$state4 = _this.state,
             filters = _this$state4.filters,
             pagination = _this$state4.pagination,
             sorter = _this$state4.sorter;
-        let fnExe = this.fetchDataSourceFn(filters, {
+
+        let fnExe = _this.fetchDataSourceFn(filters, {
           pageSize: pagination.pageSize,
           current: pagination.current ? pagination.current : 1
         }, {
           field: sorter.field,
           order: sorter.order === 'descend' ? 'desc' : 'asc'
         });
+
         let dataSource;
 
         if (fnExe && fnExe.then) {
-          this.setLoadStatus(true);
+          _this.setLoadStatus(true);
+
           fnExe.then(resp => {
-            this.setLoadStatus(false);
+            _this.setLoadStatus(false);
 
             if (resp.code === 'success') {
               dataSource = resp.data;
-              this.setState((_ref8) => {
+
+              _this.setState((_ref8) => {
                 let pagination = _ref8.pagination,
-                    selectedRows = _ref8.selectedRows;
-                let rebuildSelectedRows = [],
-                    rebuildSelectedRowKeys = [];
-
-                if (selectedRows && selectedRows.length > 0) {
-                  _.forEach(dataSource, rowData => {
-                    if (!this.rowKey) return;
-
-                    let findIndex = _.findIndex(selectedRows, {
-                      [`${this.rowKey}`]: rowData[this.rowKey]
-                    });
-
-                    if (findIndex > -1) {
-                      rebuildSelectedRows.push(selectedRows[findIndex]);
-                      rebuildSelectedRowKeys.push(selectedRows[findIndex][this.rowKey]);
-                    }
-                  });
-                }
-
+                    selectedRows = _ref8.selectedRows,
+                    selectedRowKeys = _ref8.selectedRowKeys;
                 return {
                   dataSource,
-                  selectedRows: rebuildSelectedRows,
-                  selectedRowKeys: rebuildSelectedRowKeys,
+                  selectedRows: isFilterChange ? [] : selectedRows,
+                  selectedRowKeys: isFilterChange ? [] : selectedRowKeys,
                   pagination: _objectSpread({}, pagination, {
                     showQuickJumper: pagination.pageSize < resp.total,
                     total: resp.total
@@ -470,13 +458,13 @@ let MkTable = option => WrapperComponent => {
               });
             }
           }, () => {
-            this.setLoadStatus(false);
+            _this.setLoadStatus(false);
           });
         } else {
           dataSource = fnExe;
 
           if (dataSource && _.isArray(dataSource)) {
-            this.setState({
+            _this.setState({
               dataSource
             });
           }
@@ -516,6 +504,63 @@ let MkTable = option => WrapperComponent => {
           selectedRows: [],
           selectedRowKeys: []
         });
+      };
+
+      this.modifySelectRows = operate => {
+        let type = operate.type,
+            rowKeys = operate.rowKeys,
+            rows = operate.rows;
+
+        let _update = () => {
+          this.setState((_ref9) => {
+            let selectedRows = _ref9.selectedRows,
+                selectedRowKeys = _ref9.selectedRowKeys;
+
+            let rebuildSelectedRowKeys = _.union(selectedRowKeys, rowKeys);
+
+            let rebuildSelectRows = _.unionWith(selectedRows, rows, _.isEqual);
+
+            return {
+              selectedRows: rebuildSelectRows,
+              selectedRowKeys: rebuildSelectedRowKeys
+            };
+          });
+        };
+
+        let _delete = () => {
+          this.setState((_ref10) => {
+            let selectedRows = _ref10.selectedRows,
+                selectedRowKeys = _ref10.selectedRowKeys;
+
+            let rebuildSelectedRowKeys = _.difference(selectedRowKeys, rowKeys);
+
+            let rebuildSelectRows = _.differenceWith(selectedRows, rows, _.isEqual);
+
+            return {
+              selectedRows: rebuildSelectRows,
+              selectedRowKeys: rebuildSelectedRowKeys
+            };
+          });
+        };
+
+        switch (type) {
+          case 'clear':
+            this.resetSelectRows();
+            break;
+
+          case 'update':
+            _update();
+
+            break;
+
+          case 'delete':
+            _delete();
+
+            break;
+
+          default:
+            break;
+        }
       };
 
       this.customColumns = () => {
@@ -612,6 +657,7 @@ let MkTable = option => WrapperComponent => {
           total: 0
         },
         allSelectedRows: [],
+        //所有选中过的data列，支持跨页选取
         selectedRows: [],
         selectedRowKeys: [],
         selectAble: false,

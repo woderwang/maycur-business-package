@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import { findDOMNode } from 'react-dom';
-import ReactDom from 'react-dom';
+import ReactDom from 'react-dom'; // import classnames from 'classnames';
+// import styles from './MkDropdown.less';
 
 import PropTypes from 'prop-types';
-const prefix = 'mkbs';
+const prefix = 'mkbs'; // const className = classnames(styles["mk-dropdown"]);
 
 class MkDropdown extends Component {
   constructor(props) {
@@ -23,9 +24,9 @@ class MkDropdown extends Component {
 
   appendDom(node) {
     const _this$props = this.props,
-      visible = _this$props.visible,
-      left = _this$props.left,
-      top = _this$props.top;
+          visible = _this$props.visible,
+          left = _this$props.left,
+          top = _this$props.top;
 
     if (!visible) {
       this.clearAllDom();
@@ -56,9 +57,9 @@ class MkDropdown extends Component {
   componentDidMount() {
     const node = findDOMNode(this);
     const _this$props2 = this.props,
-      trigger = _this$props2.trigger,
-      visible = _this$props2.visible,
-      disabled = _this$props2.disabled;
+          trigger = _this$props2.trigger,
+          visible = _this$props2.visible,
+          disabled = _this$props2.disabled;
 
     if (disabled) {
       return;
@@ -85,8 +86,8 @@ class MkDropdown extends Component {
 
   render() {
     let _this$props3 = this.props,
-      children = _this$props3.children,
-      disabled = _this$props3.disabled;
+        children = _this$props3.children,
+        disabled = _this$props3.disabled;
     children = React.Children.map(children, (o, i) => {
       const className = o.props.className;
       return React.cloneElement(o, {
