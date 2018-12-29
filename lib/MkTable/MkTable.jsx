@@ -21,7 +21,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
  * @desc: maycur-antd 业务包装
  * @Date: 2018-11-27 15:18:53 
  * @Last Modified by: woder.wang
- * @Last Modified time: 2018-12-28 18:08:52
+ * @Last Modified time: 2018-12-29 10:49:19
  */
 
 /* resizeable注意事项，在table中，需要至少有一列是非resizeable的，这一列是用来给调整宽度的时候，留给其他列的空间变动的，没有这样的列，交互会异常 */
@@ -681,6 +681,20 @@ let MkTable = option => WrapperComponent => {
     /* 设置table可选与否 */
 
 
+    // windowResize = () => {
+    //     console.log('window resize');
+    //     if (this.tableRef) {
+    //         const parentNode = this.tableRef.parentNode;
+    //         console.log({ width: parentNode.clientWidth, height: parentNode.clientHeight });
+    //         this.setState({ wrapperSize: { width: parentNode.clientWidth, height: parentNode.clientHeight } });
+    //     }
+    // }
+    // componentDidMount() {
+    //     window.addEventListener('resize', this.windowResize);
+    // }
+    // componentWillUnmount() {
+    //     window.removeEventListener('resize', this.windowResize);
+    // }
     render() {
       return React.createElement(WrapperComponent, _extends({
         generateTable: this.generateTable,
