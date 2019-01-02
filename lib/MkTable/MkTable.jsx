@@ -64,9 +64,9 @@ let MkTable = option => WrapperComponent => {
     firstDisplayColumns: []
   };
   option = Object.assign(defaultOption, option);
-  let defaultPageSizeOptions = [10, 20, 30, 40];
+  let defaultPageSizeOptions = [15, 20, 50, 100];
 
-  if (option.pageSize) {
+  if (option.pageSize && defaultPageSizeOptions.indexOf(option.pageSize) < 0) {
     defaultPageSizeOptions.push(option.pageSize);
     defaultPageSizeOptions.sort((a, b) => {
       return a - b;
@@ -264,6 +264,7 @@ let MkTable = option => WrapperComponent => {
       };
 
       this.generateTable = params => {
+        /* 当前不支持列冻结的功能 */
         const _this$state2 = this.state,
               columns = _this$state2.columns,
               loading = _this$state2.loading,
@@ -276,7 +277,9 @@ let MkTable = option => WrapperComponent => {
               hideColumnCodeList = _this$state2.hideColumnCodeList;
         const rowKey = params.rowKey,
               scroll = params.scroll,
-              rowSelectionOption = params.rowSelection;
+              rowSelectionOption = params.rowSelection,
+              _params$tableId = params.tableId,
+              tableId = _params$tableId === void 0 ? 'tableId' : _params$tableId;
 
         const _ref6 = rowSelectionOption || {},
               onSelectionChange = _ref6.onSelectionChange,
@@ -316,34 +319,41 @@ let MkTable = option => WrapperComponent => {
           'enable-scroll-x': !(scroll && scroll.x),
           'fix-header': option.isFixHeader
         });
-        /* 当前不支持列冻结的功能 */
 
         let tableScroll = _.assign({}, option.isFixHeader ? {
           y: true
         } : {});
 
-        return React.createElement("div", {
-          className: tableCls,
-          ref: _ref7 => {
-            this.tableRef = _ref7;
-          }
-        }, React.createElement(_Table, _extends({}, params, {
-          rowSelection: selectAble ? rowSelection : selectAbleLock ? {
-            selectedRowKeys
-          } : null,
-          components: this.components,
-          columns: visibleColumns,
-          scroll: tableScroll,
-          pagination: option.hidePagination ? false : pagination,
-          dataSource: dataSource,
-          onChange: this.onChange,
-          loading: _objectSpread({}, loadProps, {
-            spinning: loading
-          }),
-          locale: {
-            emptyText: () => React.createElement(Empty, null)
-          }
-        })));
+        if (this.tableId && this.tableId !== tableId) {
+          this.tableReset();
+          this.tableId = tableId;
+          return null;
+        } else {
+          this.tableId = tableId;
+          return React.createElement("div", {
+            className: tableCls,
+            ref: _ref7 => {
+              this.tableRef = _ref7;
+            }
+          }, React.createElement(_Table, _extends({}, params, {
+            key: tableId,
+            rowSelection: selectAble ? rowSelection : selectAbleLock ? {
+              selectedRowKeys
+            } : null,
+            components: this.components,
+            columns: visibleColumns,
+            scroll: tableScroll,
+            pagination: option.hidePagination ? false : pagination,
+            dataSource: dataSource,
+            onChange: this.onChange,
+            loading: _objectSpread({}, loadProps, {
+              spinning: loading
+            }),
+            locale: {
+              emptyText: () => React.createElement(Empty, null)
+            }
+          })));
+        }
       };
 
       this.generateFilter = function () {
@@ -632,6 +642,44 @@ let MkTable = option => WrapperComponent => {
         };
       };
 
+      this.tableReset = () => {
+        this.setState(() => {
+          return {
+            // columns: [],
+            filters: {},
+            dataSource: [],
+            loading: false,
+            loadProps: {
+              indicator: React.createElement(_Icon, {
+                type: "loading-3-quarters",
+                style: {
+                  fontSize: 24
+                },
+                spin: true
+              })
+            },
+            pagination: {
+              pageSize: option && option.pageSize ? option.pageSize : 15,
+              defaultPageSize: option && option.pageSize ? option.pageSize : 15,
+              showTotal: total => {
+                return React.createElement("span", null, "\u603B\u6570", total, "\u6761");
+              },
+              pageSizeOptions: defaultPageSizeOptions,
+              showSizeChanger: true,
+              total: 0
+            },
+            allSelectedRows: [],
+            //所有选中过的data列，支持跨页选取
+            selectedRows: [],
+            selectedRowKeys: [],
+            selectAble: false,
+            selectAbleLock: false,
+            sorter: {},
+            hideColumnCodeList: []
+          };
+        });
+      };
+
       this.state = {
         columns: [],
         filters: {},
@@ -647,8 +695,8 @@ let MkTable = option => WrapperComponent => {
           })
         },
         pagination: {
-          pageSize: option && option.pageSize ? option.pageSize : 10,
-          defaultPageSize: option && option.pageSize ? option.pageSize : 10,
+          pageSize: option && option.pageSize ? option.pageSize : 15,
+          defaultPageSize: option && option.pageSize ? option.pageSize : 15,
           showTotal: total => {
             return React.createElement("span", null, "\u603B\u6570", total, "\u6761");
           },
@@ -672,6 +720,7 @@ let MkTable = option => WrapperComponent => {
       };
       this.fetchDataSourceFn = null;
       this.tableRef = null;
+      this.tableId;
     }
     /* column转化，用于自定义的filter dropdown效果 */
 
