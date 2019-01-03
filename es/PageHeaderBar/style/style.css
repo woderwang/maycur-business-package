@@ -35,7 +35,9 @@
 }
 .mkbs-pageheader-bar_back {
   margin-right: 8px;
-  height: 100%;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -43,6 +45,7 @@
 }
 .mkbs-pageheader-bar_back:hover {
   cursor: pointer;
+  background-color: #e6f7ff;
 }
 .mkbs-pageheader-bar_title {
   font-size: 16px;
