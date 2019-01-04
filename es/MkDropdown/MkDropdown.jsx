@@ -1,57 +1,57 @@
 import React, { Component } from 'react';
 import { findDOMNode } from 'react-dom';
-import ReactDom from 'react-dom'; // import classnames from 'classnames';
-// import styles from './MkDropdown.less';
-
+import ReactDom from 'react-dom';
 import PropTypes from 'prop-types';
-const prefix = 'mkbs'; // const className = classnames(styles["mk-dropdown"]);
+const prefix = 'mkbs';
 
 class MkDropdown extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
-  }
 
-  clearAllDom() {
-    const dom = document.getElementsByClassName(`${prefix}-dropdown`);
+    this.remove = e => {
+      const node = findDOMNode(this);
 
-    if (dom.length) {
-      for (let d of dom) {
-        document.body.removeChild(d);
+      const isParent = (node, p) => {
+        if (!node.parentNode) {
+          return false;
+        }
+
+        if (node === p || node.parentNode === p) {
+          return true;
+        } else {
+          return isParent(node.parentNode, p);
+        }
+      };
+
+      if (!this.popup || isParent(e.target, node) || isParent(e.target, this.popup)) {
+        return;
       }
-    }
+
+      if (this.popup.parentNode) {
+        ReactDom.unmountComponentAtNode(this.popup);
+        this.popup.parentNode.removeChild(this.popup);
+      }
+    };
+
+    this.state = {};
   }
 
   appendDom(node) {
     const _this$props = this.props,
-          visible = _this$props.visible,
           left = _this$props.left,
-          top = _this$props.top;
-
-    if (!visible) {
-      this.clearAllDom();
-    }
+          top = _this$props.top,
+          test = _this$props.test;
 
     const _left = node.getBoundingClientRect().left - 12 + left;
 
     const _top = node.getBoundingClientRect().top + top;
 
     const cssText = `left:${_left}px;top:${_top}px;`;
-    this.popup = document.createElement("div");
-    this.popup.className = `${prefix}-dropdown`;
-    this.popup.style.cssText = cssText;
-
-    this.popup.onmouseleave = () => {
-      //uninstall dom
-      if (!visible) {
-        ReactDom.unmountComponentAtNode(this.popup);
-        document.body.removeChild(this.popup);
-        this.clearAllDom();
-      }
-    };
-
-    document.body.appendChild(this.popup);
-    ReactDom.render(this.props.overlay, this.popup);
+    const popup = this.popup = document.createElement("div");
+    popup.className = `${prefix}-dropdown ${test ? `${prefix}-dropdown-test` : null}`;
+    popup.style.cssText = cssText;
+    document.body.appendChild(popup);
+    ReactDom.render(this.props.overlay, popup);
   }
 
   componentDidMount() {
@@ -59,13 +59,14 @@ class MkDropdown extends Component {
     const _this$props2 = this.props,
           trigger = _this$props2.trigger,
           visible = _this$props2.visible,
+          test = _this$props2.test,
           disabled = _this$props2.disabled;
 
     if (disabled) {
       return;
     }
 
-    if (visible) {
+    if (visible || test) {
       this.appendDom(node);
       return;
     }
@@ -82,6 +83,12 @@ class MkDropdown extends Component {
         this.appendDom(node);
       };
     }
+
+    document.addEventListener('mousemove', this.remove);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousemove', this.remove);
   }
 
   render() {
@@ -109,6 +116,7 @@ MkDropdown.propTypes = {
   trigger: PropTypes.array,
   disabled: PropTypes.bool,
   visible: PropTypes.bool,
+  test: PropTypes.bool,
   top: PropTypes.number,
   left: PropTypes.number
 };

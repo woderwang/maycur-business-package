@@ -49,7 +49,7 @@ class MkLayout extends Component {
       rightMenus: menus.rightMenus,
       renderMenu: renderMenu
     }), React.createElement(_Layout, {
-      className: "section"
+      className: `${prefix}-section`
     }, noSider ? null : React.createElement(MkSider, {
       collapsed: collapsed,
       onToggleCollapsed: this.onToggleCollapsed,
@@ -57,7 +57,7 @@ class MkLayout extends Component {
       menus: siderMenus,
       renderMenu: renderSiderMenu
     }), React.createElement(_Layout, {
-      className: "content"
+      className: `${prefix}-content`
     }, renderContent())));
   }
 
