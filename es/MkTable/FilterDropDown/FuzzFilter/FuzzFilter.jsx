@@ -1,7 +1,8 @@
 import "maycur-antd/lib/input/style/css";
 import _Input from "maycur-antd/lib/input";
 import React, { Component } from 'react';
-let prefix = 'mkbs';
+import utils from '../../../utils/utils';
+const prefix = utils.prefixCls;
 const Search = _Input.Search;
 
 class FuzzFilter extends Component {

@@ -4,7 +4,8 @@ import React, { Component } from 'react';
 import MkHeader from './MkHeader';
 import MkSider from './MkSider';
 import PropTypes from 'prop-types';
-const prefix = 'mkbs';
+import utils from '../utils/utils';
+const prefix = utils.prefixCls;
 
 class MkLayout extends Component {
   constructor(props) {
@@ -56,7 +57,7 @@ class MkLayout extends Component {
       pathArr: pathArr,
       menus: siderMenus,
       renderMenu: renderSiderMenu
-    }), React.createElement(_Layout, {
+    }), React.createElement("div", {
       className: `${prefix}-content`
     }, renderContent())));
   }

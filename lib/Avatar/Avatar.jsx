@@ -9,8 +9,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
+import utils from '../utils/utils';
+const prefix = utils.prefixCls;
 const colors = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9'];
-const prefix = 'mkbs';
 
 function hashCode(str) {
   str = str || '';

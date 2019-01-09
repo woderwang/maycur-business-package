@@ -19,7 +19,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
  * @desc: maycur-antd 业务包装
  * @Date: 2018-11-27 15:18:53 
  * @Last Modified by: woder.wang
- * @Last Modified time: 2019-01-03 19:24:44
+ * @Last Modified time: 2019-01-08 21:33:19
  */
 
 /* resizeable注意事项，在table中，需要至少有一列是非resizeable的，这一列是用来给调整宽度的时候，留给其他列的空间变动的，没有这样的列，交互会异常 */
@@ -37,8 +37,7 @@ import PopSelect from './PopSelect/PopSelect';
 import RcTable from '../lib/RcTable';
 import Empty from '../Empty';
 import utils from '../utils/utils';
-let prefix = utils.prefixCls; // console.log(Table,FlexTable);
-
+let prefix = utils.prefixCls;
 /* title 宽度变动 */
 
 const ResizeableTitle = props => {
@@ -152,18 +151,6 @@ let MkTable = option => WrapperComponent => {
         });
       };
 
-      this.onRow = (record, index) => {
-        const rowClick = this.props.rowClick;
-        return {
-          /* 行点击事件 */
-          onClick: e => {
-            if (typeof rowClick === 'function') {
-              rowClick(record);
-            }
-          }
-        };
-      };
-
       this.onChange = (pagination, filters, sorter) => {
         let columns = this.state.columns;
         const currentFilters = this.state.filters;
@@ -251,7 +238,7 @@ let MkTable = option => WrapperComponent => {
         });
       };
 
-      this.removeSingleFilter = filterKey => {
+      this.removeSingleFilter = filterKeys => {
         let _this$state = this.state,
             filters = _this$state.filters,
             pagination = _this$state.pagination,
@@ -261,7 +248,14 @@ let MkTable = option => WrapperComponent => {
         /* 不要直接对state中的属性做delete操作（会导致无法正常render组件），clone一个来处理*/
 
 
-        newFilter[filterKey] = [];
+        if (_.isArray(filterKeys)) {
+          _.forEach(filterKeys, key => {
+            newFilter[key] = [];
+          });
+        } else {
+          newFilter[filterKeys] = [];
+        }
+
         this.onChange(pagination, newFilter, sorter);
       };
 
@@ -279,41 +273,90 @@ let MkTable = option => WrapperComponent => {
               hideColumnCodeList = _this$state2.hideColumnCodeList;
         const rowKey = params.rowKey,
               scroll = params.scroll,
-              rowSelectionOption = params.rowSelection,
+              _params$rowSelection = params.rowSelection,
+              rowSelectionOption = _params$rowSelection === void 0 ? {} : _params$rowSelection,
               _params$tableId = params.tableId,
-              tableId = _params$tableId === void 0 ? 'tableId' : _params$tableId;
+              tableId = _params$tableId === void 0 ? 'tableId' : _params$tableId,
+              onRow = params.onRow;
 
-        const _ref6 = rowSelectionOption || {},
-              onSelectionChange = _ref6.onSelectionChange,
-              inSelectedRowKeys = _ref6.selectedRowKeys;
+        let wrapOnRow = record => {
+          return {
+            onClick: e => {
+              if (rowSelectionOption.type && rowSelectionOption.type === 'radio') {
+                this.setState({
+                  selectedRows: [record],
+                  selectedRowKeys: [record[rowKey]]
+                });
+              }
 
+              if (typeof onRow === 'function') {
+                let instanceOnRow = onRow(record);
+
+                if (instanceOnRow && typeof instanceOnRow.onClick) {
+                  instanceOnRow.onClick(e);
+                }
+              }
+            }
+          };
+        };
+
+        const onSelectionChange = rowSelectionOption.onSelectionChange;
         this.rowKey = rowKey;
 
         let rowSelection = _objectSpread({}, rowSelectionOption, {
           onChange: (selectedRowKeys, selectedRows) => {
             /* 注意：onChange中的selectedRows，因为antd不支持跨页选取，所以selectedRows只包含当前页选中的数据 */
-            let unSelectedRows = _.differenceWith(dataSource, selectedRows, _.isEqual);
+            let currentSelectRows = [],
+                currentSelectedRowKeys = [];
 
-            let unSelectedRowKeys = _.map(unSelectedRows, row => {
-              return row[rowKey];
-            });
+            if (!rowSelectionOption.type || rowSelectionOption.type && rowSelectionOption.type !== 'radio') {
+              let unSelectedRows = _.differenceWith(dataSource, selectedRows, _.isEqual);
 
-            if (selectedRows.length > 0) this.modifySelectRows({
-              type: 'update',
-              rows: selectedRows,
-              rowKeys: selectedRowKeys
-            });
-            if (unSelectedRows.length > 0) this.modifySelectRows({
-              type: 'delete',
-              rows: unSelectedRows,
-              rowKeys: unSelectedRowKeys
+              let unSelectedRowKeys = _.map(unSelectedRows, row => {
+                return row[rowKey];
+              });
+
+              currentSelectRows = _.cloneDeep(this.state.selectedRows);
+
+              if (selectedRows.length > 0) {
+                currentSelectRows = this.modifySelectRows({
+                  currentSelectRows,
+                  type: 'update',
+                  rows: selectedRows,
+                  rowKeys: selectedRowKeys
+                });
+              }
+
+              if (unSelectedRows.length > 0) {
+                currentSelectRows = this.modifySelectRows({
+                  currentSelectRows,
+                  type: 'delete',
+                  rows: unSelectedRows,
+                  rowKeys: unSelectedRowKeys
+                });
+              }
+
+              _.forEach(currentSelectRows, row => {
+                currentSelectedRowKeys.push(row[rowKey]);
+              });
+            } else {
+              currentSelectRows = selectedRows;
+              currentSelectedRowKeys = selectedRowKeys;
+            }
+
+            this.setState({
+              selectedRows: currentSelectRows,
+              selectedRowKeys: currentSelectedRowKeys
+            }, () => {
+              if (typeof onSelectionChange === 'function') {
+                onSelectionChange(currentSelectedRowKeys, currentSelectRows);
+              }
             });
           },
-          onSelect: (record, selected, selectedRows, nativeEvent) => {
-            this.onSelect(record, selected);
-          },
-          selectedRowKeys: _.union(selectedRowKeys, inSelectedRowKeys)
+          selectedRowKeys
         });
+
+        console.log(rowSelection);
 
         let visibleColumns = _.filter(columns, col => {
           return !hideColumnCodeList.includes(col.dataIndex);
@@ -322,7 +365,8 @@ let MkTable = option => WrapperComponent => {
         let tableCls = classnames(`${prefix}-mktable-container`, {
           'empty': !dataSource || dataSource && dataSource.length === 0,
           'enable-scroll-x': !(scroll && scroll.x),
-          'fix-header': option.isFixHeader
+          'fix-header': option.isFixHeader,
+          'row-clickable': typeof onRow === 'function'
         });
 
         let tableScroll = _.assign({}, option.isFixHeader ? {
@@ -337,10 +381,11 @@ let MkTable = option => WrapperComponent => {
           this.tableId = tableId;
           return React.createElement("div", {
             className: tableCls,
-            ref: _ref7 => {
-              this.tableRef = _ref7;
+            ref: _ref6 => {
+              this.tableRef = _ref6;
             }
           }, React.createElement(FlexTable, _extends({}, params, {
+            onRow: wrapOnRow,
             key: tableId,
             rowSelection: selectAble ? rowSelection : selectAbleLock ? {
               selectedRowKeys
@@ -460,10 +505,10 @@ let MkTable = option => WrapperComponent => {
             if (resp.code === 'success') {
               dataSource = resp.data;
 
-              _this.setState((_ref8) => {
-                let pagination = _ref8.pagination,
-                    selectedRows = _ref8.selectedRows,
-                    selectedRowKeys = _ref8.selectedRowKeys;
+              _this.setState((_ref7) => {
+                let pagination = _ref7.pagination,
+                    selectedRows = _ref7.selectedRows,
+                    selectedRowKeys = _ref7.selectedRowKeys;
 
                 let _newSelectedRowKeys = _.cloneDeep(selectedRowKeys);
 
@@ -509,17 +554,15 @@ let MkTable = option => WrapperComponent => {
       };
 
       this.setSelectAble = val => {
-        const selectAble = this.state.selectAble;
-        this.setState(() => {
-          if (selectAble !== val) {
-            return {
-              selectedRowKeys: [],
-              selectAble: val ? true : false,
-              selectAbleLock: true
-            };
-          } else {
-            return {};
-          }
+        this.setState((_ref8) => {
+          let selectAbleLock = _ref8.selectAbleLock,
+              selectedRowKeys = _ref8.selectedRowKeys,
+              selectAble = _ref8.selectAble;
+          return {
+            selectAble: val ? true : false,
+            selectedRowKeys: selectAble !== val ? [] : selectedRowKeys,
+            selectAbleLock: selectAble !== val ? true : selectAbleLock
+          };
         });
         /* selectedRowKeys在table组件中需要延后执行,antd的table组件当前在移除checkbox行选择的时候，是无法移除选中状态 */
 
@@ -609,46 +652,23 @@ let MkTable = option => WrapperComponent => {
 
       this.modifySelectRows = operate => {
         let type = operate.type,
-            rowKeys = operate.rowKeys,
-            rows = operate.rows;
+            rows = operate.rows,
+            currentSelectRows = operate.currentSelectRows;
+        let result = null;
 
         let _update = () => {
-          this.setState((_ref9) => {
-            let selectedRows = _ref9.selectedRows,
-                selectedRowKeys = _ref9.selectedRowKeys;
+          let rebuildSelectRows = _.unionWith(currentSelectRows, rows, _.isEqual);
 
-            let rebuildSelectedRowKeys = _.union(selectedRowKeys, rowKeys);
-
-            let rebuildSelectRows = _.unionWith(selectedRows, rows, _.isEqual);
-
-            return {
-              selectedRows: rebuildSelectRows,
-              selectedRowKeys: rebuildSelectedRowKeys
-            };
-          });
+          result = rebuildSelectRows;
         };
 
         let _delete = () => {
-          this.setState((_ref10) => {
-            let selectedRows = _ref10.selectedRows,
-                selectedRowKeys = _ref10.selectedRowKeys;
+          let rebuildSelectRows = _.differenceWith(currentSelectRows, rows, _.isEqual);
 
-            let rebuildSelectedRowKeys = _.difference(selectedRowKeys, rowKeys);
-
-            let rebuildSelectRows = _.differenceWith(selectedRows, rows, _.isEqual);
-
-            return {
-              selectedRows: rebuildSelectRows,
-              selectedRowKeys: rebuildSelectedRowKeys
-            };
-          });
+          result = rebuildSelectRows;
         };
 
         switch (type) {
-          case 'clear':
-            this.resetSelectRows();
-            break;
-
           case 'update':
             _update();
 
@@ -662,6 +682,8 @@ let MkTable = option => WrapperComponent => {
           default:
             break;
         }
+
+        return result;
       };
 
       this.customColumns = () => {
@@ -735,42 +757,7 @@ let MkTable = option => WrapperComponent => {
 
       this.tableReset = () => {
         this.setState(() => {
-          return {
-            // columns: [],
-            filters: {},
-            dataSource: [],
-            loading: false,
-            loadProps: {
-              indicator: React.createElement(_Icon, {
-                type: "loading-3-quarters",
-                style: {
-                  fontSize: 24
-                },
-                spin: true
-              })
-            },
-            pagination: {
-              pageSize: option && option.pageSize ? option.pageSize : 20,
-              defaultPageSize: option && option.pageSize ? option.pageSize : 20,
-              showTotal: total => {
-                return React.createElement("span", null, "\u603B\u6570", total, "\u6761");
-              },
-              pageSizeOptions: defaultPageSizeOptions,
-              showSizeChanger: true,
-              total: 0
-            },
-            allSelectedRows: [],
-            //所有选中过的data列，支持跨页选取
-            selectedRows: [],
-            selectedRowKeys: [],
-            selectAble: false,
-            selectAbleLock: false,
-            sorter: {},
-            hideColumnCodeList: [],
-            allFlag: false,
-            canceledRows: [],
-            canceledRowKeys: []
-          };
+          return this.originState;
         });
       };
 
@@ -796,7 +783,8 @@ let MkTable = option => WrapperComponent => {
           },
           pageSizeOptions: defaultPageSizeOptions,
           showSizeChanger: true,
-          total: 0
+          total: 0,
+          size: 'small'
         },
         allSelectedRows: [],
         //所有选中过的data列，支持跨页选取
@@ -818,6 +806,7 @@ let MkTable = option => WrapperComponent => {
       this.fetchDataSourceFn = null;
       this.tableRef = null;
       this.tableId;
+      this.originState = _.cloneDeep(this.state);
     }
     /* column转化，用于自定义的filter dropdown效果 */
 
@@ -827,20 +816,6 @@ let MkTable = option => WrapperComponent => {
     /* 设置table可选与否 */
 
 
-    // windowResize = () => {
-    //     console.log('window resize');
-    //     if (this.tableRef) {
-    //         const parentNode = this.tableRef.parentNode;
-    //         console.log({ width: parentNode.clientWidth, height: parentNode.clientHeight });
-    //         this.setState({ wrapperSize: { width: parentNode.clientWidth, height: parentNode.clientHeight } });
-    //     }
-    // }
-    // componentDidMount() {
-    //     window.addEventListener('resize', this.windowResize);
-    // }
-    // componentWillUnmount() {
-    //     window.removeEventListener('resize', this.windowResize);
-    // }
     render() {
       return React.createElement(WrapperComponent, _extends({
         generateTable: this.generateTable,

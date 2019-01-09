@@ -14,8 +14,9 @@ import _Input from "maycur-antd/lib/input";
  */
 import React, { Component } from 'react';
 import _ from 'lodash';
+import utils from '../../../utils/utils';
+const prefix = utils.prefixCls;
 const Search = _Input.Search;
-let prefix = 'mkbs';
 
 class CheckFilter extends Component {
   constructor(props) {

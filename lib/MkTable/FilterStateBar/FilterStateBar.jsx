@@ -1,8 +1,11 @@
+import "maycur-antd/lib/button/style/css";
+import _Button from "maycur-antd/lib/button";
 import "core-js/modules/web.dom.iterable";
 import React, { Component } from 'react';
 import _ from 'lodash';
 import moment from 'moment';
-let prefix = 'mkbs';
+import utils from '../../utils/utils';
+const prefix = utils.prefixCls;
 
 class FilterStateBar extends Component {
   constructor(props) {
@@ -23,6 +26,17 @@ class FilterStateBar extends Component {
       }
 
       return result;
+    };
+
+    this.clear = allFilters => {
+      const removeFilter = this.props.removeFilter;
+      let filterKeys = [];
+
+      _.forEach(allFilters, filter => {
+        filterKeys.push(filter.key);
+      });
+
+      if (typeof removeFilter === 'function') removeFilter(filterKeys);
     };
 
     this.state = {};
@@ -100,15 +114,14 @@ class FilterStateBar extends Component {
   render() {
     const filters = this.props.filters;
     let theFilters = this.convertFilter(filters);
+    let componentCls = `${prefix}-mktable-filterbar`;
     let node = null;
     node = React.createElement("div", {
-      className: `mkbs-mktable-filterbar`
-    }, React.createElement("span", {
-      className: 'filter-label'
-    }, "\u7B5B\u9009\u6761\u4EF6\uFF1A"), React.createElement("div", {
+      className: componentCls
+    }, React.createElement("span", null, "\u7B5B\u9009\u6761\u4EF6\uFF1A"), React.createElement("div", {
       className: 'flex-1'
     }, React.createElement("div", {
-      className: 'filter-wrapper'
+      className: `${componentCls}-filter-wrapper`
     }, theFilters.map(filter => {
       return React.createElement("div", {
         className: 'filter',
@@ -121,7 +134,15 @@ class FilterStateBar extends Component {
           this.remove(filter);
         }
       }));
-    })))); //}
+    }), theFilters.length > 0 ? React.createElement("div", {
+      className: 'filter-clear'
+    }, React.createElement(_Button, {
+      type: "primary",
+      size: "small",
+      onClick: () => {
+        this.clear(theFilters);
+      }
+    }, "\u91CD\u7F6E")) : null))); //}
 
     return node;
   }

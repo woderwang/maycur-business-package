@@ -7,7 +7,8 @@ import "maycur-antd/lib/layout/style/css";
 import _Layout from "maycur-antd/lib/layout";
 import React from 'react';
 import _ from 'lodash';
-const prefix = 'mkbs';
+import utils from '../../utils/utils';
+const prefix = utils.prefixCls;
 const Sider = _Layout.Sider;
 const SubMenu = _Menu.SubMenu;
 

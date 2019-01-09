@@ -4,8 +4,9 @@ import "maycur-antd/lib/checkbox/style/css";
 import _Checkbox from "maycur-antd/lib/checkbox";
 import "core-js/modules/web.dom.iterable";
 import React, { Component } from 'react';
+import utils from '../../utils/utils';
 import _ from 'lodash';
-const prefix = 'mkbs';
+const prefix = utils.prefixCls;
 
 class PopContent extends Component {
   constructor(props) {

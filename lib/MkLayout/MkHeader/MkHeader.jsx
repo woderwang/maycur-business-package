@@ -14,7 +14,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 import React from 'react';
 import _ from 'lodash';
 import classNames from 'classnames';
-const prefix = 'mkbs';
+import utils from '../../utils/utils';
+const prefix = utils.prefixCls;
 const Header = _Layout.Header;
 const SubMenu = _Menu.SubMenu;
 
