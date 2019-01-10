@@ -1,7 +1,7 @@
 {
   "name": "maycur-business",
   "version": "0.1.8",
-  "description": "maycur businuess react components of web",
+  "description": "maycur business react components of web",
   "main": "lib/index.js",
   "module": "es/index.js",
   "scripts": {
