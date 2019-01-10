@@ -12,7 +12,6 @@ import ScrollBar from '../../ScrollBar';
 const prefix = utils.prefixCls;
 const Sider = _Layout.Sider;
 const SubMenu = _Menu.SubMenu;
-console.log(ScrollBar);
 
 function loopPath(menus, pathArr) {
   let matchedMenu;
