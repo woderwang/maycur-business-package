@@ -8,9 +8,11 @@ import _Layout from "maycur-antd/lib/layout";
 import React from 'react';
 import _ from 'lodash';
 import utils from '../../utils/utils';
+import ScrollBar from '../../ScrollBar';
 const prefix = utils.prefixCls;
 const Sider = _Layout.Sider;
 const SubMenu = _Menu.SubMenu;
+console.log(ScrollBar);
 
 function loopPath(menus, pathArr) {
   let matchedMenu;
@@ -48,7 +50,7 @@ const MkSider = props => {
     collapsed: collapsed,
     collapsedWidth: 56,
     onCollapse: onToggleCollapsed
-  }, React.createElement(_Menu, {
+  }, React.createElement(ScrollBar, null, React.createElement(_Menu, {
     theme: "light",
     mode: "inline",
     inlineIndent: "44",
@@ -86,7 +88,7 @@ const MkSider = props => {
       key: menu.path
     }, content);
     return MenuContent;
-  })));
+  }))));
 };
 
 export default MkSider;
