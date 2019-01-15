@@ -357,6 +357,9 @@ let MkTable = option => WrapperComponent => {
               }
             });
           },
+          onSelect: (record, selected, selectedRows, nativeEvent) => {
+            this.onSelect(record, selected);
+          },
           onSelectAll: (selected, selectedRows, changeRows) => {
             this.onSelectAll(selected, selectedRows, changeRows);
           },
@@ -370,13 +373,18 @@ let MkTable = option => WrapperComponent => {
         let tableCls = classnames(`${prefix}-mktable-container`, {
           'empty': !dataSource || dataSource && dataSource.length === 0,
           'enable-scroll-x': !(scroll && scroll.x),
-          'fix-header': option.isFixHeader,
           'row-clickable': typeof onRow === 'function'
         });
+        let tableScroll = {};
 
-        let tableScroll = _.assign({}, option.isFixHeader ? {
-          y: true
-        } : {});
+        if (dataSource && dataSource.length > 0) {
+          tableScroll = _.assign({}, option.isFixHeader ? {
+            y: true
+          } : {});
+          tableCls = classnames(tableCls, {
+            'fix-header': option.isFixHeader
+          });
+        }
 
         if (this.tableId && this.tableId !== tableId) {
           this.tableReset();
@@ -640,7 +648,6 @@ let MkTable = option => WrapperComponent => {
         if (selected) {
           // 如果是全选状态下
           if (allFlag) {
-            // canceledRows = _.difference(canceledRows, changeRows);
             changeRows.forEach(item => {
               canceledRows = this.removeFromCollection(item, canceledRows, this.rowKey, 'object');
               canceledRowKeys = this.removeFromCollection(item, canceledRowKeys, this.rowKey, 'string');
