@@ -112,7 +112,9 @@ class FilterStateBar extends Component {
   }
 
   render() {
-    const filters = this.props.filters;
+    const _this$props = this.props,
+          filters = _this$props.filters,
+          totalCount = _this$props.totalCount;
     let theFilters = this.convertFilter(filters);
     let componentCls = `${prefix}-mktable-filterbar`;
     let node = null;
@@ -134,7 +136,11 @@ class FilterStateBar extends Component {
           this.remove(filter);
         }
       }));
-    }), theFilters.length > 0 ? React.createElement("div", {
+    }), React.createElement("div", {
+      className: 'filter-data-state'
+    }, "\u5171", React.createElement("span", {
+      className: 'filter-data-state_num'
+    }, totalCount || 0), "\u6761\u8BB0\u5F55"), theFilters.length > 0 ? React.createElement("div", {
       className: 'filter-clear'
     }, React.createElement(_Button, {
       type: "primary",
