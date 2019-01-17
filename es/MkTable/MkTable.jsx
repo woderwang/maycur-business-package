@@ -159,15 +159,15 @@ let MkTable = option => WrapperComponent => {
               CurrentPagination = _this$state.pagination;
         const _option = option,
               isCrossPageSelect = _option.isCrossPageSelect;
-        let isFilterChange = !_.isEqual(currentFilters, filters);
-
-        if (!isCrossPageSelect && !isFilterChange && !_.isEqual(CurrentPagination, pagination)) {
-          isFilterChange = true;
-        }
-
-        if (isFilterChange) {
-          this.setAllFlag(false);
-        }
+        let isClearSelection = false;
+        if (!_.isEqual(currentFilters, filters)) isClearSelection = true;
+        console.log(pagination); // if (!isCrossPageSelect && !isFilterChange && !_.isEqual(CurrentPagination, pagination)) {
+        //     console.log('page change');
+        //     isFilterChange = true;
+        // }
+        // if (isClearSelection) {
+        //     this.setAllFlag(false);
+        // }
 
         _.forEach(filters, (value, key) => {
           if (value) {
@@ -205,7 +205,7 @@ let MkTable = option => WrapperComponent => {
           pagination
         }, () => {
           this.dataFetch({
-            isFilterChange
+            isClearSelection
           });
         });
       };
@@ -364,7 +364,7 @@ let MkTable = option => WrapperComponent => {
               /* 非跨页选取 */
               currentSelectRows = selectedRows;
               currentSelectedRowKeys = selectedRowKeys;
-              console.log(currentSelectRows, currentSelectedRowKeys);
+              console.log('rowSelection change:', currentSelectRows, currentSelectedRowKeys);
             }
 
             this.setState({
@@ -384,8 +384,6 @@ let MkTable = option => WrapperComponent => {
           },
           selectedRowKeys
         });
-
-        console.log(selectedRowKeys);
 
         let visibleColumns = _.filter(columns, col => {
           return !hideColumnCodeList.includes(col.dataIndex);
@@ -507,7 +505,7 @@ let MkTable = option => WrapperComponent => {
 
       this.dataFetch = function () {
         let params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        const isFilterChange = params.isFilterChange;
+        const isClearSelection = params.isClearSelection;
         if (typeof _this.fetchDataSourceFn !== 'function') return;
         let _this$state5 = _this.state,
             filters = _this$state5.filters,
@@ -533,29 +531,34 @@ let MkTable = option => WrapperComponent => {
             _this.setLoadStatus(false);
 
             if (resp.code === 'success') {
-              dataSource = resp.data;
+              dataSource = resp.data || [];
+              /* 如果触发需要清空所有选中的数据 */
+
+              if (isClearSelection) _this.setAllFlag(false);
 
               _this.setState((_ref7) => {
                 let pagination = _ref7.pagination,
                     selectedRows = _ref7.selectedRows,
                     selectedRowKeys = _ref7.selectedRowKeys;
+                let newSelectedRowKeys = []; //_.cloneDeep(selectedRowKeys);
 
-                let _newSelectedRowKeys = _.cloneDeep(selectedRowKeys);
+                let newSelectedRows = [];
 
-                if (allFlag) {
-                  if (dataSource.length > 0) {
-                    dataSource.forEach(item => {
-                      _newSelectedRowKeys.push(item[_this.rowKey]);
-                    });
-                    _newSelectedRowKeys = Array.from(new Set(_newSelectedRowKeys));
-                    _newSelectedRowKeys = _.differenceBy(_newSelectedRowKeys, canceledRowKeys);
-                  }
+                if (!isClearSelection) {
+                  newSelectedRows = _.filter(dataSource, item => {
+                    if (selectedRowKeys.includes(item[_this.rowKey])) {
+                      newSelectedRowKeys.push(item[_this.rowKey]);
+                      return true;
+                    } else {
+                      return false;
+                    }
+                  });
                 }
 
                 return {
                   dataSource,
-                  selectedRows: isFilterChange ? [] : selectedRows,
-                  selectedRowKeys: isFilterChange ? [] : _newSelectedRowKeys,
+                  selectedRows: newSelectedRows,
+                  selectedRowKeys: newSelectedRowKeys,
                   pagination: _objectSpread({}, pagination, {
                     showQuickJumper: pagination.pageSize < resp.total,
                     total: resp.total
