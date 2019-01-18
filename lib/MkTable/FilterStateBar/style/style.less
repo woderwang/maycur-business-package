@@ -10,7 +10,7 @@
         .filter {
             padding: 3px 25px 3px 10px;
             border: 1px solid @border-color;
-            border-radius: 4px;
+            border-radius: 0px;
             background: @page-background;
             position: relative;
             &-label {
@@ -38,6 +38,13 @@
         }
         .filter-clear {
             margin-left: @filter-gap;
+        }
+        .filter-data-state {
+            margin-left:4px;
+            &_num {
+                color:@maycur-color;
+                margin:0 4px;
+            }
         }
     }
 }

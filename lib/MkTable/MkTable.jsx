@@ -62,7 +62,8 @@ let MkTable = option => WrapperComponent => {
     resizeAble: false,
     disableLoad: false,
     hidePagination: false,
-    firstDisplayColumns: []
+    firstDisplayColumns: [],
+    isCrossPageSelect: false
   };
   option = Object.assign(defaultOption, option);
   let defaultPageSizeOptions = [20, 50, 100];
@@ -153,12 +154,20 @@ let MkTable = option => WrapperComponent => {
 
       this.onChange = (pagination, filters, sorter) => {
         let columns = this.state.columns;
-        const currentFilters = this.state.filters;
-        let isFilterChange = !_.isEqual(currentFilters, filters);
-
-        if (isFilterChange) {
-          this.setAllFlag(false);
-        }
+        const _this$state = this.state,
+              currentFilters = _this$state.filters,
+              CurrentPagination = _this$state.pagination;
+        const _option = option,
+              isCrossPageSelect = _option.isCrossPageSelect;
+        let isClearSelection = false;
+        if (!_.isEqual(currentFilters, filters)) isClearSelection = true;
+        console.log(pagination); // if (!isCrossPageSelect && !isFilterChange && !_.isEqual(CurrentPagination, pagination)) {
+        //     console.log('page change');
+        //     isFilterChange = true;
+        // }
+        // if (isClearSelection) {
+        //     this.setAllFlag(false);
+        // }
 
         _.forEach(filters, (value, key) => {
           if (value) {
@@ -196,7 +205,7 @@ let MkTable = option => WrapperComponent => {
           pagination
         }, () => {
           this.dataFetch({
-            isFilterChange
+            isClearSelection
           });
         });
       };
@@ -243,10 +252,10 @@ let MkTable = option => WrapperComponent => {
       };
 
       this.removeSingleFilter = filterKeys => {
-        let _this$state = this.state,
-            filters = _this$state.filters,
-            pagination = _this$state.pagination,
-            sorter = _this$state.sorter;
+        let _this$state2 = this.state,
+            filters = _this$state2.filters,
+            pagination = _this$state2.pagination,
+            sorter = _this$state2.sorter;
 
         let newFilter = _.cloneDeep(filters);
         /* 不要直接对state中的属性做delete操作（会导致无法正常render组件），clone一个来处理*/
@@ -265,16 +274,16 @@ let MkTable = option => WrapperComponent => {
 
       this.generateTable = params => {
         /* 当前不支持列冻结的功能 */
-        const _this$state2 = this.state,
-              columns = _this$state2.columns,
-              loading = _this$state2.loading,
-              pagination = _this$state2.pagination,
-              dataSource = _this$state2.dataSource,
-              selectedRowKeys = _this$state2.selectedRowKeys,
-              selectAble = _this$state2.selectAble,
-              selectAbleLock = _this$state2.selectAbleLock,
-              loadProps = _this$state2.loadProps,
-              hideColumnCodeList = _this$state2.hideColumnCodeList;
+        const _this$state3 = this.state,
+              columns = _this$state3.columns,
+              loading = _this$state3.loading,
+              pagination = _this$state3.pagination,
+              dataSource = _this$state3.dataSource,
+              selectedRowKeys = _this$state3.selectedRowKeys,
+              selectAble = _this$state3.selectAble,
+              selectAbleLock = _this$state3.selectAbleLock,
+              loadProps = _this$state3.loadProps,
+              hideColumnCodeList = _this$state3.hideColumnCodeList;
         const rowKey = params.rowKey,
               scroll = params.scroll,
               _params$rowSelection = params.rowSelection,
@@ -282,6 +291,8 @@ let MkTable = option => WrapperComponent => {
               _params$tableId = params.tableId,
               tableId = _params$tableId === void 0 ? 'tableId' : _params$tableId,
               onRow = params.onRow;
+        const _option2 = option,
+              isCrossPageSelect = _option2.isCrossPageSelect;
 
         let wrapOnRow = record => {
           return {
@@ -313,39 +324,47 @@ let MkTable = option => WrapperComponent => {
             let currentSelectRows = [],
                 currentSelectedRowKeys = [];
 
-            if (!rowSelectionOption.type || rowSelectionOption.type && rowSelectionOption.type !== 'radio') {
-              let unSelectedRows = _.differenceWith(dataSource, selectedRows, _.isEqual);
+            if (isCrossPageSelect) {
+              /* 跨页选取 */
+              if (!rowSelectionOption.type || rowSelectionOption.type && rowSelectionOption.type !== 'radio') {
+                let unSelectedRows = _.differenceWith(dataSource, selectedRows, _.isEqual);
 
-              let unSelectedRowKeys = _.map(unSelectedRows, row => {
-                return row[rowKey];
-              });
-
-              currentSelectRows = _.cloneDeep(this.state.selectedRows);
-
-              if (selectedRows.length > 0) {
-                currentSelectRows = this.modifySelectRows({
-                  currentSelectRows,
-                  type: 'update',
-                  rows: selectedRows,
-                  rowKeys: selectedRowKeys
+                let unSelectedRowKeys = _.map(unSelectedRows, row => {
+                  return row[rowKey];
                 });
-              }
 
-              if (unSelectedRows.length > 0) {
-                currentSelectRows = this.modifySelectRows({
-                  currentSelectRows,
-                  type: 'delete',
-                  rows: unSelectedRows,
-                  rowKeys: unSelectedRowKeys
+                currentSelectRows = _.cloneDeep(this.state.selectedRows);
+
+                if (selectedRows.length > 0) {
+                  currentSelectRows = this.modifySelectRows({
+                    currentSelectRows,
+                    type: 'update',
+                    rows: selectedRows,
+                    rowKeys: selectedRowKeys
+                  });
+                }
+
+                if (unSelectedRows.length > 0) {
+                  currentSelectRows = this.modifySelectRows({
+                    currentSelectRows,
+                    type: 'delete',
+                    rows: unSelectedRows,
+                    rowKeys: unSelectedRowKeys
+                  });
+                }
+
+                _.forEach(currentSelectRows, row => {
+                  currentSelectedRowKeys.push(row[rowKey]);
                 });
+              } else {
+                currentSelectRows = selectedRows;
+                currentSelectedRowKeys = selectedRowKeys;
               }
-
-              _.forEach(currentSelectRows, row => {
-                currentSelectedRowKeys.push(row[rowKey]);
-              });
             } else {
+              /* 非跨页选取 */
               currentSelectRows = selectedRows;
               currentSelectedRowKeys = selectedRowKeys;
+              console.log('rowSelection change:', currentSelectRows, currentSelectedRowKeys);
             }
 
             this.setState({
@@ -371,20 +390,18 @@ let MkTable = option => WrapperComponent => {
         });
 
         let tableCls = classnames(`${prefix}-mktable-container`, {
-          'empty': !dataSource || dataSource && dataSource.length === 0,
+          'table-empty': !dataSource || dataSource && dataSource.length === 0,
           'enable-scroll-x': !(scroll && scroll.x),
-          'row-clickable': typeof onRow === 'function'
+          'row-clickable': typeof onRow === 'function',
+          'fix-header': option.isFixHeader
         });
         let tableScroll = {};
-
-        if (dataSource && dataSource.length > 0) {
-          tableScroll = _.assign({}, option.isFixHeader ? {
-            y: true
-          } : {});
-          tableCls = classnames(tableCls, {
-            'fix-header': option.isFixHeader
-          });
-        }
+        tableScroll = _.assign({}, option.isFixHeader ? {
+          y: true
+        } : {}); // if (dataSource && dataSource.length > 0) {
+        //     tableScroll = _.assign({}, option.isFixHeader ? { y: true } : {});
+        //     tableCls = classnames(tableCls, { 'fix-header': option.isFixHeader })
+        // }
 
         if (this.tableId && this.tableId !== tableId) {
           this.tableReset();
@@ -422,14 +439,16 @@ let MkTable = option => WrapperComponent => {
 
       this.generateFilter = function () {
         let props = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        const _this$state3 = _this.state,
-              filters = _this$state3.filters,
-              columns = _this$state3.columns;
+        const _this$state4 = _this.state,
+              filters = _this$state4.filters,
+              columns = _this$state4.columns,
+              dataSource = _this$state4.dataSource;
         const filterConfig = props.filterConfig;
         return React.createElement(FilterStateBar, {
           filters: filters,
           filterConfig: filterConfig,
           columns: columns,
+          totalCount: dataSource.length,
           removeFilter: _this.removeSingleFilter
         });
       };
@@ -484,20 +503,16 @@ let MkTable = option => WrapperComponent => {
         });
       };
 
-      this.showTotal = () => {
-        return React.createElement("span", null, "\u603B\u657019\u6761");
-      };
-
       this.dataFetch = function () {
         let params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        const isFilterChange = params.isFilterChange;
+        const isClearSelection = params.isClearSelection;
         if (typeof _this.fetchDataSourceFn !== 'function') return;
-        let _this$state4 = _this.state,
-            filters = _this$state4.filters,
-            pagination = _this$state4.pagination,
-            sorter = _this$state4.sorter,
-            allFlag = _this$state4.allFlag,
-            canceledRowKeys = _this$state4.canceledRowKeys;
+        let _this$state5 = _this.state,
+            filters = _this$state5.filters,
+            pagination = _this$state5.pagination,
+            sorter = _this$state5.sorter,
+            allFlag = _this$state5.allFlag,
+            canceledRowKeys = _this$state5.canceledRowKeys;
 
         let fnExe = _this.fetchDataSourceFn(filters, {
           pageSize: pagination.pageSize,
@@ -516,29 +531,34 @@ let MkTable = option => WrapperComponent => {
             _this.setLoadStatus(false);
 
             if (resp.code === 'success') {
-              dataSource = resp.data;
+              dataSource = resp.data || [];
+              /* 如果触发需要清空所有选中的数据 */
+
+              if (isClearSelection) _this.setAllFlag(false);
 
               _this.setState((_ref7) => {
                 let pagination = _ref7.pagination,
                     selectedRows = _ref7.selectedRows,
                     selectedRowKeys = _ref7.selectedRowKeys;
+                let newSelectedRowKeys = []; //_.cloneDeep(selectedRowKeys);
 
-                let _newSelectedRowKeys = _.cloneDeep(selectedRowKeys);
+                let newSelectedRows = [];
 
-                if (allFlag) {
-                  if (dataSource.length > 0) {
-                    dataSource.forEach(item => {
-                      _newSelectedRowKeys.push(item[_this.rowKey]);
-                    });
-                    _newSelectedRowKeys = Array.from(new Set(_newSelectedRowKeys));
-                    _newSelectedRowKeys = _.differenceBy(_newSelectedRowKeys, canceledRowKeys);
-                  }
+                if (!isClearSelection) {
+                  newSelectedRows = _.filter(dataSource, item => {
+                    if (selectedRowKeys.includes(item[_this.rowKey])) {
+                      newSelectedRowKeys.push(item[_this.rowKey]);
+                      return true;
+                    } else {
+                      return false;
+                    }
+                  });
                 }
 
                 return {
                   dataSource,
-                  selectedRows: isFilterChange ? [] : selectedRows,
-                  selectedRowKeys: isFilterChange ? [] : _newSelectedRowKeys,
+                  selectedRows: newSelectedRows,
+                  selectedRowKeys: newSelectedRowKeys,
                   pagination: _objectSpread({}, pagination, {
                     showQuickJumper: pagination.pageSize < resp.total,
                     total: resp.total
@@ -608,11 +628,11 @@ let MkTable = option => WrapperComponent => {
       };
 
       this.onSelect = (record, selected) => {
-        let _this$state5 = this.state,
-            allSelectedRows = _this$state5.allSelectedRows,
-            allFlag = _this$state5.allFlag,
-            canceledRowKeys = _this$state5.canceledRowKeys,
-            canceledRows = _this$state5.canceledRows;
+        let _this$state6 = this.state,
+            allSelectedRows = _this$state6.allSelectedRows,
+            allFlag = _this$state6.allFlag,
+            canceledRowKeys = _this$state6.canceledRowKeys,
+            canceledRows = _this$state6.canceledRows;
 
         if (selected) {
           // 如果是全选状态下
@@ -639,11 +659,11 @@ let MkTable = option => WrapperComponent => {
       };
 
       this.onSelectAll = (selected, selectedRows, changeRows) => {
-        let _this$state6 = this.state,
-            allSelectedRows = _this$state6.allSelectedRows,
-            allFlag = _this$state6.allFlag,
-            canceledRowKeys = _this$state6.canceledRowKeys,
-            canceledRows = _this$state6.canceledRows;
+        let _this$state7 = this.state,
+            allSelectedRows = _this$state7.allSelectedRows,
+            allFlag = _this$state7.allFlag,
+            canceledRowKeys = _this$state7.canceledRowKeys,
+            canceledRows = _this$state7.canceledRows;
 
         if (selected) {
           // 如果是全选状态下
@@ -737,9 +757,9 @@ let MkTable = option => WrapperComponent => {
       };
 
       this.customColumns = () => {
-        const _this$state7 = this.state,
-              columns = _this$state7.columns,
-              hideColumnCodeList = _this$state7.hideColumnCodeList;
+        const _this$state8 = this.state,
+              columns = _this$state8.columns,
+              hideColumnCodeList = _this$state8.hideColumnCodeList;
         let columnsTreeData = [],
             defaultChecked = [];
 
@@ -828,9 +848,9 @@ let MkTable = option => WrapperComponent => {
         pagination: {
           pageSize: option && option.pageSize ? option.pageSize : 20,
           defaultPageSize: option && option.pageSize ? option.pageSize : 20,
-          showTotal: total => {
-            return React.createElement("span", null, "\u603B\u6570", total, "\u6761");
-          },
+          // showTotal: (total) => {
+          //     return <span>总数{total}条</span>
+          // },
           pageSizeOptions: defaultPageSizeOptions,
           showSizeChanger: true,
           total: 0,

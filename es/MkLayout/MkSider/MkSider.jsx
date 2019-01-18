@@ -39,7 +39,9 @@ const MkSider = props => {
   let matchedMenu = loopPath(menus, pathArr);
   let selectedKeys = matchedMenu ? [matchedMenu.path] : [];
   const defaultOpenKeys = pathArr.length > 2 ? [pathArr.slice(0, pathArr.length - 1).join('/')] : [];
-  return React.createElement(Sider, {
+  return React.createElement(ScrollBar, {
+    className: `${prefix}-sider-scroll`
+  }, React.createElement(Sider, {
     breakpoint: "xl",
     theme: "light",
     className: `${prefix}-sider`,
@@ -49,7 +51,7 @@ const MkSider = props => {
     collapsed: collapsed,
     collapsedWidth: 56,
     onCollapse: onToggleCollapsed
-  }, React.createElement(ScrollBar, null, React.createElement(_Menu, {
+  }, React.createElement(_Menu, {
     theme: "light",
     mode: "inline",
     inlineIndent: "44",
